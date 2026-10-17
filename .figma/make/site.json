@@ -1,0 +1,10 @@
+{
+  "description": "Manage petroleum depot operations with ease using this comprehensive web dashboard, designed for owners and managers to track inventory, sales, and finances.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

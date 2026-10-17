@@ -1,0 +1,200 @@
+rules_version = '2';
+
+// ---------------------------------------------------------------------------
+// Petroleum Depot — shared Firestore security rules
+//
+// The Android app and this dashboard read/write the SAME project
+// (`petroleum-depot`) and the SAME collections. All authorisation is enforced
+// here, never in the client, and the caller's role is read from the shared
+// `users/{uid}` profile document so it cannot be forged from the browser.
+//
+// Role -> permission matrix mirrors `src/lib/types.ts` (ROLE_PERMS) and the
+// phone app's `Perm` enum.
+// ---------------------------------------------------------------------------
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------- helpers
+    function authed() {
+      return request.auth != null;
+    }
+    function profilePath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+    function hasProfile() {
+      return authed() && exists(profilePath());
+    }
+    // The Android phone never asks the operator to sign in: it opens a silent,
+    // ANONYMOUS Firebase session and is protected by its own lock screen. Such
+    // a device session is trusted to read/write the depot's operational data;
+    // accountability comes from each record's `created_by` + audit trail.
+    function isDevice() {
+      return authed() && request.auth.token.firebase.sign_in_provider == 'anonymous';
+    }
+    // An "active depot user" is either an enrolled device session (above) or a
+    // dashboard user with a profile doc whose active flag is truthy.
+    function isActive() {
+      return authed() && (isDevice() || (hasProfile() && get(profilePath()).data.active == true));
+    }
+    function role() {
+      return get(profilePath()).data.role;
+    }
+    function roleIn(roles) {
+      return isActive() && role() in roles;
+    }
+
+    // Named permission checks (identical to the client permission matrix for
+    // dashboard users; a device session always passes). `||` short-circuits so
+    // `role()` is never evaluated for an anonymous device.
+    function pReceiveFuel()        { return isDevice() || roleIn(['owner', 'manager', 'operator']); }
+    function pLoadFuel()           { return isDevice() || roleIn(['owner', 'manager', 'operator']); }
+    function pReceivePayment()     { return isDevice() || roleIn(['owner', 'manager', 'accountant', 'operator']); }
+    function pPaySupplier()        { return isDevice() || roleIn(['owner', 'manager', 'accountant']); }
+    function pAddExpense()         { return isDevice() || roleIn(['owner', 'manager', 'accountant', 'operator']); }
+    function pChangeRates()        { return isDevice() || roleIn(['owner', 'manager']); }
+    function pStockAdjust()        { return isDevice() || roleIn(['owner', 'manager']); }
+    function pReverseTransaction() { return isDevice() || roleIn(['owner']); }
+    function pViewFinancialReports() { return isDevice() || roleIn(['owner', 'manager', 'accountant']); }
+    function pCloseDay()           { return isDevice() || roleIn(['owner', 'manager']); }
+    function pManageUsers()        { return roleIn(['owner']); }
+    function pManageTanks()        { return isDevice() || roleIn(['owner', 'manager']); }
+    function pManageMasterData()   { return isDevice() || roleIn(['owner', 'manager']); }
+    function pExportBackup()       { return isDevice() || roleIn(['owner', 'manager', 'accountant']); }
+    function pViewAudit()          { return roleIn(['owner', 'manager', 'accountant']); }
+
+    // ------------------------------------------------------------- users
+    // Bootstrap: the very first owner profile may be created only while the
+    // `settings/__bootstrap__` lock doc is absent. The dashboard creates both
+    // in one atomic batch, so the second concurrent bootstrap fails to write
+    // the lock and the whole batch rolls back — only one owner can ever be
+    // self-created. Every other account is created by an owner.
+    match /users/{uid} {
+      allow read: if authed() && (request.auth.uid == uid || roleIn(['owner']));
+      allow create: if (
+        (authed()
+          && request.auth.uid == uid
+          && request.resource.data.role == 'owner'
+          && request.resource.data.active == true
+          && !exists(/databases/$(database)/documents/settings/__bootstrap__))
+        || roleIn(['owner'])
+      );
+      allow update: if roleIn(['owner']) || (
+        authed()
+        && request.auth.uid == uid
+        // a user may edit their own profile but never their role or active flag
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.active == resource.data.active
+      );
+      allow delete: if roleIn(['owner']);
+    }
+
+    // ------------------------------------------------------------- settings
+    // `settings/__bootstrap__` is the one-time owner lock. It is created once
+    // (before any profile exists) and can never be updated or deleted.
+    match /settings/{key} {
+      allow read: if isActive() || (key == '__bootstrap__' && authed());
+      allow create: if (key == '__bootstrap__' && authed()
+                       && !exists(/databases/$(database)/documents/settings/__bootstrap__))
+                     || (key != '__bootstrap__' && roleIn(['owner', 'manager']));
+      allow update, delete: if key != '__bootstrap__' && roleIn(['owner', 'manager']);
+    }
+
+    // ------------------------------------------------------- master data
+    match /customers/{id} {
+      allow read: if isActive();
+      allow create, update, delete: if pManageMasterData();
+    }
+    match /suppliers/{id} {
+      allow read: if isActive();
+      allow create, update, delete: if pManageMasterData();
+    }
+    match /vehicles/{id} {
+      allow read: if isActive();
+      allow create, update, delete: if pManageMasterData();
+    }
+    match /tanks/{id} {
+      allow read: if isActive();
+      allow create, update, delete: if pManageTanks();
+    }
+
+    // ------------------------------------------------------- transactions
+    // Create is gated by the role that may perform the action. Edits/reversals
+    // are limited to owner/manager; hard delete to owner. Every posting is an
+    // atomic client batch, so a rejected write rolls the whole transaction back.
+    match /purchases/{id} {
+      allow read: if isActive();
+      allow create: if pReceiveFuel();
+      allow update, delete: if isDevice() || roleIn(['owner']) || roleIn(['manager']);
+    }
+    match /sales/{id} {
+      allow read: if isActive();
+      allow create: if pLoadFuel();
+      allow update, delete: if isDevice() || roleIn(['owner']) || roleIn(['manager']);
+    }
+    match /customer_payments/{id} {
+      allow read: if isActive();
+      allow create: if pReceivePayment();
+      allow update, delete: if isDevice() || roleIn(['owner']);
+    }
+    match /supplier_payments/{id} {
+      allow read: if isActive();
+      allow create: if pPaySupplier();
+      allow update, delete: if isDevice() || roleIn(['owner']);
+    }
+    match /expenses/{id} {
+      allow read: if isActive();
+      allow create: if pAddExpense();
+      allow update, delete: if isDevice() || roleIn(['owner', 'manager']);
+    }
+    match /stock_adjustments/{id} {
+      allow read: if isActive();
+      allow create: if roleIn(['owner', 'manager']);                   // stockAdjust
+      allow update, delete: if isDevice() || roleIn(['owner']);
+    }
+    match /tank_dips/{id} {
+      allow read: if isActive();
+      allow create: if roleIn(['owner', 'manager']);                   // stockAdjust
+      allow update, delete: if isDevice() || roleIn(['owner']);
+    }
+    match /cashbook/{id} {
+      allow read: if isActive();
+      allow create: if isActive();                                     // appended by postings
+      allow update, delete: if isDevice() || roleIn(['owner']);
+    }
+    match /stock_ledger/{id} {
+      allow read: if isActive();
+      allow create: if isActive();                                     // appended by postings
+      allow update, delete: if isDevice() || roleIn(['owner']);
+    }
+    match /receipts/{id} {
+      allow read: if isActive();
+      allow create: if isActive();
+      allow update, delete: if isDevice() || roleIn(['owner']);
+    }
+    match /daily_closings/{id} {
+      allow read: if isActive();
+      allow create, update: if isDevice() || roleIn(['owner', 'manager']);  // closeDay
+      allow delete: if isDevice() || roleIn(['owner']);
+    }
+
+    // ------------------------------------------------------------- audit
+    // Append-only: no client may ever edit or remove an audit entry.
+    match /audit_logs/{id} {
+      allow read: if roleIn(['owner', 'manager', 'accountant']);       // viewAudit
+      allow create: if isActive();
+      allow update, delete: if false;
+    }
+
+    // ------------------------------------------------------------ devices
+    match /devices/{id} {
+      allow read: if isActive();
+      allow create, update: if isActive();
+      allow delete: if isDevice() || roleIn(['owner']);
+    }
+
+    // ----------------------------------------------------------- fallback
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}
