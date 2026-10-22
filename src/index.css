@@ -34,45 +34,45 @@ table{border-collapse:collapse;width:100%;font-size:11px;white-space:nowrap}th{t
    shell to a right-hand sidebar and applies the Urdu typeface.
    ============================================================ */
 @font-face{font-family:"Noori Nastaleeq";src:url("/fonts/NotoNastaliqUrdu.ttf") format("truetype");font-display:swap;font-weight:400 700}
-body{font-family:"Noori Nastaleeq","Noto Nastaliq Urdu",Tahoma,serif;direction:rtl;line-height:1.95}
-button,input,select,textarea{font-family:"Noori Nastaleeq","Noto Nastaliq Urdu",Tahoma,serif}
-.latin,td.num,.metric-card>strong,kbd,.global-search kbd,.brand small,.eyebrow,.top-status small,.top-status strong,.badge{font-family:Inter,"Noori Nastaleeq",Arial,sans-serif}
-.latin,td.num{direction:ltr;unicode-bidi:embed}
-.sidebar{inset:0 0 0 auto}
-.workspace{margin-right:252px;margin-left:0}
-.sidebar-collapsed .workspace{margin-right:74px;margin-left:0}
-.brand{padding:0 18px 0 16px}
-.collapse{margin-left:0;margin-right:auto}
-nav button{border-left:0;border-right:3px solid transparent;text-align:right}
-nav button.active{border-left:0;border-right-color:#22c58b}
-nav button b{margin-left:0;margin-right:auto}
-.top-status>div{padding-left:0;padding-right:13px}
-.status-dot{left:auto;right:0}
-.profile{text-align:right}
-th{text-align:right}
-.settings-nav button{text-align:right}
-.movement-icon,.metric-icon{transform:scaleX(-1)}
-.detail-panel{border-left:0;border-right:3px solid var(--amber-700)}
-.page-heading h1{letter-spacing:0}
-.profile-wrap{position:relative}
-.profile-menu{position:absolute;inset-inline-end:0;top:52px;background:#fff;border:1px solid var(--slate-200);border-radius:10px;box-shadow:var(--shadow);min-width:230px;padding:6px;z-index:40}
-.profile-menu .pm-head{display:flex;flex-direction:column;gap:2px;padding:9px 11px;border-bottom:1px solid var(--slate-200);margin-bottom:5px}
-.profile-menu .pm-head strong{font-size:12px}.profile-menu .pm-head small{font-size:10px;color:var(--slate-500)}
-.profile-menu button{width:100%;border:0;background:transparent;display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:7px;font-size:12px;color:var(--slate-700);text-align:right}
-.profile-menu button:hover{background:var(--slate-50)}
-.profile-menu button.danger{color:var(--red-700)}
-.toast-stack{position:fixed;inset-inline-end:20px;bottom:20px;display:flex;flex-direction:column;gap:8px;z-index:200}
-.toast{position:static}
-.toast>span{transform:none}
-.toast-danger>span{background:var(--red-700)}
-.toast-warning>span{background:#e49419}
-.toast-info>span{background:var(--blue-700)}
-.spinner{width:26px;height:26px;border:3px solid var(--slate-300);border-top-color:var(--green-600);border-radius:50%;display:inline-block;animation:spin .9s linear infinite}
+html[dir="rtl"] body{font-family:"Noori Nastaleeq","Noto Nastaliq Urdu",Tahoma,serif;direction:rtl;line-height:1.95}
+html[dir="rtl"] button, html[dir="rtl"] input, html[dir="rtl"] select, html[dir="rtl"] textarea{font-family:"Noori Nastaleeq","Noto Nastaliq Urdu",Tahoma,serif}
+html[dir="rtl"] .latin, html[dir="rtl"] td.num, html[dir="rtl"] .metric-card>strong, html[dir="rtl"] kbd, html[dir="rtl"] .global-search kbd, html[dir="rtl"] .brand small, html[dir="rtl"] .eyebrow, html[dir="rtl"] .top-status small, html[dir="rtl"] .top-status strong, html[dir="rtl"] .badge{font-family:Inter,"Noori Nastaleeq",Arial,sans-serif}
+html[dir="rtl"] .latin, html[dir="rtl"] td.num{direction:ltr;unicode-bidi:embed}
+html[dir="rtl"] .sidebar{inset:0 0 0 auto}
+html[dir="rtl"] .workspace{margin-right:252px;margin-left:0}
+html[dir="rtl"] .sidebar-collapsed .workspace{margin-right:74px;margin-left:0}
+html[dir="rtl"] .brand{padding:0 18px 0 16px}
+html[dir="rtl"] .collapse{margin-left:0;margin-right:auto}
+html[dir="rtl"] nav button{border-left:0;border-right:3px solid transparent;text-align:right}
+html[dir="rtl"] nav button.active{border-left:0;border-right-color:#22c58b}
+html[dir="rtl"] nav button b{margin-left:0;margin-right:auto}
+html[dir="rtl"] .top-status>div{padding-left:0;padding-right:13px}
+html[dir="rtl"] .status-dot{left:auto;right:0}
+html[dir="rtl"] .profile{text-align:right}
+html[dir="rtl"] th{text-align:right}
+html[dir="rtl"] .settings-nav button{text-align:right}
+html[dir="rtl"] .movement-icon, html[dir="rtl"] .metric-icon{transform:scaleX(-1)}
+html[dir="rtl"] .detail-panel{border-left:0;border-right:3px solid var(--amber-700)}
+html[dir="rtl"] .page-heading h1{letter-spacing:0}
+html[dir="rtl"] .profile-wrap{position:relative}
+html[dir="rtl"] .profile-menu{position:absolute;inset-inline-end:0;top:52px;background:#fff;border:1px solid var(--slate-200);border-radius:10px;box-shadow:var(--shadow);min-width:230px;padding:6px;z-index:40}
+html[dir="rtl"] .profile-menu .pm-head{display:flex;flex-direction:column;gap:2px;padding:9px 11px;border-bottom:1px solid var(--slate-200);margin-bottom:5px}
+html[dir="rtl"] .profile-menu .pm-head strong{html[dir="rtl"] font-size:12px}.profile-menu .pm-head small{font-size:10px;color:var(--slate-500)}
+html[dir="rtl"] .profile-menu button{width:100%;border:0;background:transparent;display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:7px;font-size:12px;color:var(--slate-700);text-align:right}
+html[dir="rtl"] .profile-menu button:hover{background:var(--slate-50)}
+html[dir="rtl"] .profile-menu button.danger{color:var(--red-700)}
+html[dir="rtl"] .toast-stack{position:fixed;inset-inline-end:20px;bottom:20px;display:flex;flex-direction:column;gap:8px;z-index:200}
+html[dir="rtl"] .toast{position:static}
+html[dir="rtl"] .toast>span{transform:none}
+html[dir="rtl"] .toast-danger>span{background:var(--red-700)}
+html[dir="rtl"] .toast-warning>span{background:#e49419}
+html[dir="rtl"] .toast-info>span{background:var(--blue-700)}
+html[dir="rtl"] .spinner{width:26px;height:26px;border:3px solid var(--slate-300);border-top-color:var(--green-600);border-radius:50%;display:inline-block;animation:spin .9s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
-.app-loading{min-height:100vh;display:grid;place-items:center}
-@media(max-width:1024px){.workspace{margin-right:74px;margin-left:0}}
-@media(max-width:720px){.sidebar{transform:translateX(100%)}.sidebar-collapsed .sidebar{transform:translateX(0)}.workspace{margin-right:0}}
+html[dir="rtl"] .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+html[dir="rtl"] .app-loading{min-height:100vh;display:grid;place-items:center}
+@media(max-width:1024px){[dir="rtl"] .workspace{margin-right:74px;margin-left:0}}
+@media(max-width:720px){[dir="rtl"] .sidebar{transform:translateX(100%)}[dir="rtl"] .sidebar-collapsed .sidebar{transform:translateX(0)}[dir="rtl"] .workspace{margin-right:0}}
 
 /* ============================================================
    Dark mode
