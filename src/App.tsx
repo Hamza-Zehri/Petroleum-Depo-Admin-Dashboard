@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./lib/auth";
+import { LangProvider } from "./lib/lang";
 import { DepotProvider } from "./lib/store";
 import { ToastProvider, LoadingState } from "./components/ui";
 import Layout from "./components/Layout";
@@ -58,11 +59,13 @@ function Routed() {
 export default function App() {
   return (
     <ToastProvider>
-      <AuthProvider>
-        <BrowserRouter>
+      <LangProvider>
+        <AuthProvider>
+          <BrowserRouter>
           <Routed />
         </BrowserRouter>
-      </AuthProvider>
+        </AuthProvider>
+      </LangProvider>
     </ToastProvider>
   );
 }

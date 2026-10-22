@@ -5,6 +5,7 @@ import { Icon } from "../components/Icons";
 import { useSettings, setSetting } from "../lib/repo";
 import { useAuth } from "../lib/auth";
 import { ROLE_LABELS } from "../lib/types";
+import { useLang } from "../lib/lang";
 
 const FIELDS: { key: string; label: string; latin?: boolean; type?: string }[] = [
   { key: "depot_name", label: "ڈپو کا نام" },
@@ -22,6 +23,7 @@ export default function Settings() {
   const { settings } = useSettings();
   const { user } = useAuth();
   const toast = useToast();
+  const { lang, setLang } = useLang();
   const nav = useNavigate();
   const [form, setForm] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
@@ -83,6 +85,14 @@ export default function Settings() {
       <div className="notice" style={{ marginTop: 14 }}>
         <Icon name="shield" /><div><strong>سیکیورٹی</strong><span>نقشِ راست (firestore.rules) میں کردار کے مطابق رسائی محدود ہے۔ ریٹ تبدیلی و منسوخی صرف مجاز کردار کر سکتے ہیں۔</span></div>
       </div>
+
+      <Card className="settings-form" style={{ marginTop: 16 }}>
+        <div className="card-head"><div><h2>Language / زبان</h2><p>Switch the dashboard language</p></div></div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Button variant={lang === "en" ? "primary" : "secondary"} onClick={() => setLang("en")}>English</Button>
+          <Button variant={lang === "ur" ? "primary" : "secondary"} onClick={() => setLang("ur")}>اردو</Button>
+        </div>
+      </Card>
     </>
   );
 }

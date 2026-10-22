@@ -5,7 +5,7 @@ import { useAuth } from "../lib/auth";
 import { useSettings, useCollection } from "../lib/repo";
 import { ROLE_LABELS } from "../lib/types";
 import { fmtTime } from "../lib/format";
-import { t } from "../lib/i18n";
+import { useLang } from "../lib/lang";
 
 const NAV = [
   { to: "/dashboard", key: "dashboard", icon: "grid" },
@@ -39,6 +39,7 @@ function useLastActivity(): string {
 export default function Layout() {
   const { user, logout } = useAuth();
   const { settings, error: settingsError } = useSettings();
+  const { t, lang, setLang } = useLang();
   const [collapsed, setCollapsed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
@@ -107,6 +108,9 @@ export default function Layout() {
             </div>
           </div>
           <button className="bell" aria-label="اطلاعات"><Icon name="bell" /><span className="latin">0</span></button>
+          <button className="btn btn-secondary" style={{ padding: "6px 10px", fontSize: 12 }} onClick={() => setLang(lang === "en" ? "ur" : "en")} aria-label="Language">
+            {lang === "en" ? "اردو" : "English"}
+          </button>
           <div className="profile-wrap">
             <button className="profile" onClick={() => setMenuOpen((v) => !v)} aria-haspopup="menu" aria-expanded={menuOpen}>
               <span>{initials}</span>
