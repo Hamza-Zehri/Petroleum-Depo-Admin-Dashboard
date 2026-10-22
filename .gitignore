@@ -21,3 +21,6 @@ logs/
 /.opencode-skills/
 
 .vercel
+figma_make_extracted/
+figma_make.zip
+*.make
