@@ -26,7 +26,7 @@ export const firebaseConfig = {
 // lock automatically (see src/lib/auth.tsx), so no manual step is required.
 // Override with VITE_OWNER_UID when pointing at a different project.
 export const OWNER_UID: string =
-  env.VITE_OWNER_UID ?? "MGtP71uoi6XWeOcSa4AwldhVo552";
+  env.VITE_OWNER_UID ?? "3bwlwQ7f2AbTufxpyPnEH6TbjS02";
 
 export const app: FirebaseApp = initializeApp(firebaseConfig);
 export const auth: Auth = getAuth(app);
