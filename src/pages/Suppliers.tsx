@@ -6,6 +6,7 @@ import { D, money, fmtDate } from "../lib/format";
 import { createRecord, patchRecord, deleteRecord, byDateDesc } from "../lib/repo";
 import { postSupplierPayment } from "../lib/posting";
 import { useAuth } from "../lib/auth";
+import { useLang } from "../lib/lang";
 import { exportCsv } from "../lib/print";
 import { CsvImportModal } from "../components/CsvImportModal";
 import { downloadTemplate } from "../lib/csv";
@@ -19,6 +20,7 @@ export default function Suppliers() {
   const d = useDepot();
   const { user } = useAuth();
   const toast = useToast();
+  const { t } = useLang();
   const [form, setForm] = useState<Form | null>(null);
   const [detail, setDetail] = useState<string | null>(null);
   const [pay, setPay] = useState<string | null>(null);
@@ -47,7 +49,7 @@ export default function Suppliers() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="سپلائر" description="سپلائر، خریداری و ادائیگی">
+      <PageHeader eyebrow={t.all} title={t.suppliersTitle} description={t.suppliersDesc}>
         <Button variant="secondary" icon="download" onClick={() => exportCsv("suppliers", [
           { header: "Name", value: (s) => String(s.name) }, { header: "Contact", value: (s) => String(s.contact ?? "") },
           { header: "Opening", value: (s) => String(s.opening_balance) }, { header: "Payable", value: (s) => dueOf(String(s.id)).toFixed(2) },
@@ -63,7 +65,7 @@ export default function Suppliers() {
 
       <Card>
         <div className="card-head"><div><h2>سپلائر فہرست</h2><p>{rows.length} سپلائر</p></div></div>
-        {rows.length === 0 ? <EmptyState icon="box" title="کوئی سپلائر نہیں" hint="نیا سپلائر شامل کریں۔" /> : (
+        {rows.length === 0 ? <EmptyState icon="box" title={t.noSuppliers} hint={t.noSuppliersHint} /> : (
           <div className="table-scroll"><table>
             <thead><tr><th>نام</th><th>رابطہ</th><th>ابتدائی</th><th>دینا (باقی)</th><th>حالت</th><th></th></tr></thead>
             <tbody>

@@ -75,6 +75,40 @@ export const ur = {
   live: "لائیو",
   provisional: "عارضی",
   requiresReview: "جائزہ درکار",
+
+  customersTitle: "گاہک",
+  customersDesc: "گاہک اور کریڈٹ کا انتظام",
+  addCustomer: "گاہک شامل کریں",
+  importCsv: "CSV امپورٹ",
+  template: "ٹیمپلیٹ",
+  name: "نام",
+  contact: "رابطہ",
+  opening: "ابتدائی",
+  due: "بقایا",
+  creditLimit: "کریڈٹ حد",
+  active: "فعال",
+  inactive: "غیر فعال",
+  noCustomers: "کوئی گاہک نہیں ملا",
+  noCustomersHint: "شروع کرنے کے لیے گاہک شامل کریں",
+
+  suppliersTitle: "سپلائر",
+  suppliersDesc: "سپلائر اور ادائیگیوں کا انتظام",
+  addSupplier: "سپلائر شامل کریں",
+  noSuppliers: "کوئی سپلائر نہیں ملا",
+  noSuppliersHint: "شروع کرنے کے لیے سپلائر شامل کریں",
+
+  all: "تمام",
+  total: "کل",
+  rows: "قطاریں",
+  valid: "درست",
+  invalid: "غلط",
+  duplicates: "نقلی",
+  importComplete: "امپورٹ مکمل",
+  created: "بنائے گئے",
+  skipped: "چھوڑے گئے",
+  downloadErrorReport: "خرابی رپورٹ ڈاؤنلوڈ",
+  cancelImport: "منسوخ",
+  required: "ضروری",
 } as const;
 
 export const en = {
@@ -151,6 +185,43 @@ export const en = {
   live: "Live",
   provisional: "Provisional",
   requiresReview: "Requires review",
+
+  // Customers
+  customersTitle: "Customers",
+  customersDesc: "Manage customers and credit",
+  addCustomer: "Add customer",
+  importCsv: "Import CSV",
+  template: "Template",
+  name: "Name",
+  contact: "Contact",
+  opening: "Opening",
+  due: "Due",
+  creditLimit: "Credit limit",
+  active: "Active",
+  inactive: "Inactive",
+  noCustomers: "No customers found",
+  noCustomersHint: "Add a customer to get started",
+
+  // Suppliers
+  suppliersTitle: "Suppliers",
+  suppliersDesc: "Manage suppliers and payables",
+  addSupplier: "Add supplier",
+  noSuppliers: "No suppliers found",
+  noSuppliersHint: "Add a supplier to get started",
+
+  // Common
+  all: "All",
+  total: "Total",
+  rows: "rows",
+  valid: "Valid",
+  invalid: "Invalid",
+  duplicates: "Duplicates",
+  importComplete: "Import complete",
+  created: "created",
+  skipped: "skipped",
+  downloadErrorReport: "Download error report",
+  cancelImport: "Cancel",
+  required: "required",
 } as const;
 
 export type Dict = {

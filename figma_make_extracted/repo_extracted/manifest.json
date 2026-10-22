@@ -1,0 +1,46 @@
+{
+  "version": 2,
+  "commit_sha": "5d1d6b443bca31b215d08a2ee8ecfee8c824cd8f",
+  "refs": [
+    {
+      "name": "refs/heads/main",
+      "target_sha1": "5d1d6b443bca31b215d08a2ee8ecfee8c824cd8f"
+    }
+  ],
+  "packs": [
+    {
+      "uuid": "77f44c49-32e3-426a-99b3-3c964c93eda7",
+      "type": "WAL",
+      "depth": 0,
+      "boundary_commits": [],
+      "object_count": 30,
+      "size_bytes": 21027,
+      "sequence_num": 0,
+      "checksum_sha1": "4fff4a8f322099365809b406a42b775d506a51e3",
+      "created_at": 1792229813
+    },
+    {
+      "uuid": "ec8bf935-7704-4579-acae-b7ec00b5654b",
+      "type": "WAL",
+      "depth": 0,
+      "boundary_commits": [],
+      "object_count": 5,
+      "size_bytes": 1187,
+      "sequence_num": 1,
+      "checksum_sha1": "4a06f11510ecbc5dac429bfb86a810a19bd39210",
+      "created_at": 1792229816
+    },
+    {
+      "uuid": "06276cbd-9d2b-483c-812b-c55b58699d4b",
+      "type": "WAL",
+      "depth": 0,
+      "boundary_commits": [],
+      "object_count": 5,
+      "size_bytes": 18243,
+      "sequence_num": 2,
+      "checksum_sha1": "e71c049c51c0a6ab345d385e525c95ad852fc80d",
+      "created_at": 1792229967
+    }
+  ],
+  "lfs_objects": []
+}
