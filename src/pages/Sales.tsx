@@ -6,6 +6,7 @@ import { D, money, qty, fmtDate, fmtDateTime, moneyCompact } from "../lib/format
 import { patchRecord, deleteRecord, byDateDesc } from "../lib/repo";
 import { postSale, reverseTransaction } from "../lib/posting";
 import { useAuth } from "../lib/auth";
+import { useLang } from "../lib/lang";
 import { exportCsv, printHtml, reportHeader, escapeHtml } from "../lib/print";
 
 type Doc = Record<string, unknown>;
@@ -23,6 +24,7 @@ export default function Sales() {
   const d = useDepot();
   const { user } = useAuth();
   const toast = useToast();
+  const { t } = useLang();
   const [form, setForm] = useState<Form | null>(null);
   const [detail, setDetail] = useState<Doc | null>(null);
   const [edit, setEdit] = useState<Doc | null>(null);
@@ -64,7 +66,7 @@ export default function Sales() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="فروخت (ایندھن بھرائی)" description="گاہک کو ایندھن کی بھرائی، وصولی اور ادھار">
+      <PageHeader eyebrow={t.all} title={t.salesTitle} description={t.salesDesc}>
         <Button variant="secondary" icon="download" onClick={() => exportCsv("sales", [
           { header: "Ref", value: (r) => String(r.ref_no) }, { header: "Date", value: (r) => String(r.business_date) },
           { header: "Customer", value: (r) => custName(r.customer_id) }, { header: "Fuel", value: (r) => String(r.fuel_type) },

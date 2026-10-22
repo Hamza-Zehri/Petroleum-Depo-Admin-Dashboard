@@ -6,6 +6,7 @@ import { D, money, qty, fmtDate } from "../lib/format";
 import { patchRecord, deleteRecord, byDateDesc } from "../lib/repo";
 import { postPurchase, reverseTransaction } from "../lib/posting";
 import { useAuth } from "../lib/auth";
+import { useLang } from "../lib/lang";
 import { exportCsv } from "../lib/print";
 
 type Doc = Record<string, unknown>;
@@ -25,6 +26,7 @@ export default function Purchases() {
   const d = useDepot();
   const { user } = useAuth();
   const toast = useToast();
+  const { t } = useLang();
   const [form, setForm] = useState<Form | null>(null);
   const [detail, setDetail] = useState<Doc | null>(null);
   const [edit, setEdit] = useState<Doc | null>(null);
@@ -53,7 +55,7 @@ export default function Purchases() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="خریداری (ایندھن موصول)" description="سپلائر سے ایندھن کی خریداری اور ادائیگی">
+      <PageHeader eyebrow={t.all} title={t.purchasesTitle} description={t.purchasesDesc}>
         <Button variant="secondary" icon="download" onClick={() => exportCsv("purchases", [
           { header: "Ref", value: (r) => String(r.ref_no) }, { header: "Date", value: (r) => String(r.business_date) },
           { header: "Supplier", value: (r) => supName(r.supplier_id) }, { header: "Fuel", value: (r) => String(r.fuel_type) },

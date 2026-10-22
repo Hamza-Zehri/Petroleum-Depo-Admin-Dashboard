@@ -5,6 +5,7 @@ import { Icon } from "../components/Icons";
 import { D, money, fmtDate } from "../lib/format";
 import { createRecord, patchRecord, deleteRecord, byDateDesc } from "../lib/repo";
 import { useAuth } from "../lib/auth";
+import { useLang } from "../lib/lang";
 import { exportCsv } from "../lib/print";
 
 type Doc = Record<string, unknown>;
@@ -14,6 +15,7 @@ export default function Cashbook() {
   const d = useDepot();
   const { user } = useAuth();
   const toast = useToast();
+  const { t } = useLang();
   const [form, setForm] = useState<Form | null>(null);
   const [dirF, setDirF] = useState("");
   const [methodF, setMethodF] = useState("");
@@ -46,7 +48,7 @@ export default function Cashbook() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="کیش بک" description="تمام نقد و بینک لین دین اور بیلنس">
+      <PageHeader eyebrow={t.all} title={t.cashbookTitle} description={t.cashbookDesc}>
         <Button variant="secondary" icon="download" onClick={() => exportCsv("cashbook", [
           { header: "Date", value: (r) => String(r.business_date) }, { header: "Dir", value: (r) => String(r.dir) },
           { header: "Category", value: (r) => String(r.category) }, { header: "Method", value: (r) => String(r.method) },

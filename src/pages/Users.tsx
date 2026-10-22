@@ -7,6 +7,7 @@ import { fmtDate, fmtDateTime } from "../lib/format";
 import { createRecord, patchRecord, deleteRecord, useCollection, byDateDesc } from "../lib/repo";
 import { ROLE_LABELS, can, type Role, type Perm } from "../lib/types";
 import { useAuth } from "../lib/auth";
+import { useLang } from "../lib/lang";
 
 type Doc = Record<string, unknown>;
 const ROLES: Role[] = ["owner", "manager", "accountant", "operator"];
@@ -22,6 +23,7 @@ interface Form { email: string; password: string; full_name: string; role: Role 
 
 export default function Users() {
   const toast = useToast();
+  const { t } = useLang();
   const { user: me } = useAuth();
   const { data: users, loading, error } = useCollection<Doc>("users", [], ["users-all"]);
   const [form, setForm] = useState<Form | null>(null);
@@ -48,7 +50,7 @@ export default function Users() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="صارفین و اختیارات" description="اکاؤنٹس، کردار (roles) اور اجازتیں">
+      <PageHeader eyebrow={t.all} title={t.usersTitle} description={t.usersDesc}>
         <Button variant="primary" icon="plus" onClick={() => setForm({ email: "", password: "", full_name: "", role: "operator" })}>نیا صارف</Button>
       </PageHeader>
 

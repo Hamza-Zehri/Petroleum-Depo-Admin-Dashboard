@@ -5,12 +5,14 @@ import { Icon } from "../components/Icons";
 import { D, money, qty, fmtDate, fmtDateTime, todayIso } from "../lib/format";
 import { createRecord, byDateDesc } from "../lib/repo";
 import { useAuth } from "../lib/auth";
+import { useLang } from "../lib/lang";
 import { exportCsv, printHtml, reportHeader } from "../lib/print";
 
 export default function Closing() {
   const d = useDepot();
   const { user } = useAuth();
   const toast = useToast();
+  const { t } = useLang();
   const [date, setDate] = useState(d.today || todayIso());
   const [actual, setActual] = useState("");
   const [busy, setBusy] = useState(false);
@@ -74,7 +76,7 @@ export default function Closing() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="روزانہ کلوزنگ" description="دن کے آخر میں نقد و اسٹاک کی تصدیق">
+      <PageHeader eyebrow={t.all} title={t.closingTitle} description={t.closingDesc}>
         <input className="date-control latin" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         <Button variant="secondary" icon="print" onClick={printClose}>پرنٹ</Button>
         <Button variant="secondary" icon="download" onClick={() => exportCsv("closings", [

@@ -6,6 +6,7 @@ import { D, money, fmtDate } from "../lib/format";
 import { patchRecord, deleteRecord, byDateDesc } from "../lib/repo";
 import { postExpense, reverseTransaction } from "../lib/posting";
 import { useAuth } from "../lib/auth";
+import { useLang } from "../lib/lang";
 import { exportCsv } from "../lib/print";
 
 type Doc = Record<string, unknown>;
@@ -16,6 +17,7 @@ export default function Expenses() {
   const d = useDepot();
   const { user } = useAuth();
   const toast = useToast();
+  const { t } = useLang();
   const [form, setForm] = useState<Form | null>(null);
   const [methodF, setMethodF] = useState("");
   const [catF, setCatF] = useState("");
@@ -46,7 +48,7 @@ export default function Expenses() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="اخراجات" description="روزانہ کے اخراجات اور اقسام">
+      <PageHeader eyebrow={t.all} title={t.expensesTitle} description={t.expensesDesc}>
         <Button variant="secondary" icon="download" onClick={() => exportCsv("expenses", [
           { header: "Date", value: (r) => String(r.expense_date) }, { header: "Category", value: (r) => String(r.category) },
           { header: "Amount", value: (r) => String(r.amount) }, { header: "Method", value: (r) => String(r.method) },

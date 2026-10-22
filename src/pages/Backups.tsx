@@ -4,11 +4,13 @@ import { db } from "../lib/firebase";
 import { Card, Button, PageHeader, useToast } from "../components/ui";
 import { Icon } from "../components/Icons";
 import { useDepot } from "../lib/store";
+import { useLang } from "../lib/lang";
 import { COLLECTIONS } from "../lib/types";
 
 export default function Backups() {
   const d = useDepot();
   const toast = useToast();
+  const { t } = useLang();
 
   const counts = useMemo<Record<string, number>>(() => ({
     sales: d.sales.length, purchases: d.purchases.length, customers: d.customers.length,
@@ -66,7 +68,7 @@ export default function Backups() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="بیک اپ و بحالی" description="پورا ڈیٹا JSON میں محفوظ اور بحال کریں">
+      <PageHeader eyebrow={t.all} title={t.backupsTitle} description={t.backupsDesc}>
         <Button variant="primary" icon="download" onClick={exportAll}>مکمل بیک اپ ڈاؤن لوڈ</Button>
       </PageHeader>
 

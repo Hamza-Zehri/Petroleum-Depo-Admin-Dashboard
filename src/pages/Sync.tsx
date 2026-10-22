@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useDepot } from "../lib/store";
+import { useLang } from "../lib/lang";
 import { Card, Button, PageHeader, Badge, EmptyState } from "../components/ui";
 import { Icon } from "../components/Icons";
 import { fmtDateTime } from "../lib/format";
@@ -9,6 +10,7 @@ type Doc = Record<string, unknown>;
 
 export default function Sync() {
   const d = useDepot();
+  const { t } = useLang();
   const { data: devices } = useCollection<Doc>("devices", [], ["devices-all"]);
 
   const all = useMemo(() => [
@@ -34,7 +36,7 @@ export default function Sync() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="سنک اور ڈیوائسز" description="فون اور کلاؤڈ کے درمیان ڈیٹا کی مطابقت">
+      <PageHeader eyebrow={t.all} title={t.syncTitle} description={t.syncDesc}>
         <Button variant="secondary" icon="sync" onClick={() => location.reload()}>ریفریش</Button>
       </PageHeader>
 

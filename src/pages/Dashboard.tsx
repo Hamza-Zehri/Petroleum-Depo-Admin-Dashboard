@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDepot } from "../lib/store";
+import { useLang } from "../lib/lang";
 import { Card, Metric, Progress, Badge, StatusBadge, PageHeader, Button, LoadingState, EmptyState } from "../components/ui";
 import { Icon } from "../components/Icons";
 import { money, moneyShort, qty, fmtDate, D, percent, clampPct } from "../lib/format";
@@ -9,6 +10,7 @@ import { byDateDesc } from "../lib/repo";
 export default function Dashboard() {
   const d = useDepot();
   const nav = useNavigate();
+  const { t } = useLang();
 
   const receivable = useMemo(
     () => d.customerBalances.reduce((a, b) => a.plus(b.due.gt(0) ? b.due : 0), D(0)),
@@ -52,7 +54,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="ڈیش بورڈ" description="آج کا کاروباری جائزہ، اسٹاک اور مالی پوزیشن">
+      <PageHeader eyebrow={t.all} title={t.dashboardTitle} description={t.dashboardDesc}>
         <Button variant="secondary" icon="print" onClick={() => nav("/reports")}>رپورٹ</Button>
         <Button variant="primary" icon="plus" onClick={() => nav("/sales")}>نئی بھرائی</Button>
       </PageHeader>

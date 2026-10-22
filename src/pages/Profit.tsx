@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useDepot } from "../lib/store";
+import { useLang } from "../lib/lang";
 import { Card, PageHeader, Button, EmptyState } from "../components/ui";
 import { D, money, moneyCompact, qty, fmtDate, todayIso } from "../lib/format";
 import { withinPeriod } from "../lib/repo";
@@ -9,6 +10,7 @@ function monthsAgo(n: number) { const x = new Date(); x.setMonth(x.getMonth() - 
 
 export default function Profit() {
   const d = useDepot();
+  const { t } = useLang();
   const [from, setFrom] = useState(monthsAgo(1));
   const [to, setTo] = useState(todayIso());
 
@@ -51,7 +53,7 @@ export default function Profit() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="نفع و نقصان" description="مدت کے لحاظ سے آمدنی، لاگت، اخراجات اور خالص نفع">
+      <PageHeader eyebrow={t.all} title={t.profitTitle} description={t.profitDesc}>
         <input className="date-control latin" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
         <input className="date-control latin" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
         <Button variant="secondary" icon="download" onClick={() => exportCsv("profit", [

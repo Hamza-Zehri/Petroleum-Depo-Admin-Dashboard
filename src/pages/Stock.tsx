@@ -6,6 +6,7 @@ import { D, qty, fmtDate, fmtDateTime, percent, clampPct, money } from "../lib/f
 import { createRecord, patchRecord, deleteRecord, byDateDesc } from "../lib/repo";
 import { postTankDip, postStockAdjustment } from "../lib/posting";
 import { useAuth } from "../lib/auth";
+import { useLang } from "../lib/lang";
 import { exportCsv } from "../lib/print";
 
 type Tab = "tanks" | "ledger" | "dips" | "adjust";
@@ -17,6 +18,7 @@ export default function Stock() {
   const d = useDepot();
   const { user } = useAuth();
   const toast = useToast();
+  const { t } = useLang();
   const [tab, setTab] = useState<Tab>("tanks");
   const [tankForm, setTankForm] = useState<TankForm | null>(null);
   const [dipFor, setDipFor] = useState<string | null>(null);
@@ -50,7 +52,7 @@ export default function Stock() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="ٹینک اور اسٹاک" description="ٹینکس، بُک اسٹاک، ڈپس، ایڈجسٹمنٹ اور لیجر">
+      <PageHeader eyebrow={t.all} title={t.stockTitle} description={t.stockDesc}>
         <Button variant="secondary" icon="download" onClick={() => exportCsv("stock-ledger", [
           { header: "Date", value: (r) => String(r.business_date) },
           { header: "Tank", value: (r) => nameOf(String(r.tank_id)) },

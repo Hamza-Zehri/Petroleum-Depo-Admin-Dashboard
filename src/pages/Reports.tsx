@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useDepot } from "../lib/store";
+import { useLang } from "../lib/lang";
 import { Card, PageHeader, Button, EmptyState } from "../components/ui";
 import { Icon } from "../components/Icons";
 import { D, money, qty, fmtDate, todayIso } from "../lib/format";
@@ -10,6 +11,7 @@ function monthsAgo(n: number) { const x = new Date(); x.setMonth(x.getMonth() - 
 
 export default function Reports() {
   const d = useDepot();
+  const { t } = useLang();
   const [from, setFrom] = useState(monthsAgo(1));
   const [to, setTo] = useState(todayIso());
 
@@ -62,7 +64,7 @@ export default function Reports() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="رپورٹس" description="قابلِ پرنٹ و برآمد کاروباری گوشوارے">
+      <PageHeader eyebrow={t.all} title={t.reportsTitle} description={t.reportsDesc}>
         <input className="date-control latin" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
         <input className="date-control latin" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
       </PageHeader>

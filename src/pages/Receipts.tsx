@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useDepot } from "../lib/store";
+import { useLang } from "../lib/lang";
 import { Card, Button, PageHeader, EmptyState } from "../components/ui";
 import { Icon } from "../components/Icons";
 import { D, money, qty, fmtDate } from "../lib/format";
@@ -9,6 +10,7 @@ type Kind = "sale" | "purchase" | "customer_payment" | "supplier_payment";
 
 export default function Receipts() {
   const d = useDepot();
+  const { t } = useLang();
   const [kind, setKind] = useState<Kind>("sale");
   const [q, setQ] = useState("");
 
@@ -48,7 +50,7 @@ export default function Receipts() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="رسیدیں و پرنٹنگ" description="لین دین کی رسیدیں دیکھیں اور پرنٹ کریں" />
+      <PageHeader eyebrow={t.all} title={t.receiptsTitle} description={t.receiptsDesc} />
 
       <div className="section-tabs">
         {([["sale", "فروخت"], ["purchase", "خریداری"], ["customer_payment", "گاہک وصولی"], ["supplier_payment", "سپلائر ادائیگی"]] as [Kind, string][]).map(([k, label]) => (
