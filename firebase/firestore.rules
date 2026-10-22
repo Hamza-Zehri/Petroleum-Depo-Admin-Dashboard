@@ -64,7 +64,7 @@ service cloud.firestore {
 
     // ------------------------------------------------------------- users
     // Bootstrap: the very first owner profile may be created only while the
-    // `settings/__bootstrap__` lock doc is absent. The dashboard creates both
+    // `settings/bootstrap_lock` lock doc is absent. The dashboard creates both
     // in one atomic batch, so the second concurrent bootstrap fails to write
     // the lock and the whole batch rolls back — only one owner can ever be
     // self-created. Every other account is created by an owner.
@@ -75,7 +75,7 @@ service cloud.firestore {
           && request.auth.uid == uid
           && request.resource.data.role == 'owner'
           && request.resource.data.active == true
-          && !exists(/databases/$(database)/documents/settings/__bootstrap__))
+          && !exists(/databases/$(database)/documents/settings/bootstrap_lock))
         || roleIn(['owner'])
       );
       allow update: if roleIn(['owner']) || (
@@ -89,14 +89,14 @@ service cloud.firestore {
     }
 
     // ------------------------------------------------------------- settings
-    // `settings/__bootstrap__` is the one-time owner lock. It is created once
+    // `settings/bootstrap_lock` is the one-time owner lock. It is created once
     // (before any profile exists) and can never be updated or deleted.
     match /settings/{key} {
-      allow read: if isActive() || (key == '__bootstrap__' && authed());
-      allow create: if (key == '__bootstrap__' && authed()
-                       && !exists(/databases/$(database)/documents/settings/__bootstrap__))
-                     || (key != '__bootstrap__' && roleIn(['owner', 'manager']));
-      allow update, delete: if key != '__bootstrap__' && roleIn(['owner', 'manager']);
+      allow read: if isActive() || (key == 'bootstrap_lock' && authed());
+      allow create: if (key == 'bootstrap_lock' && authed()
+                       && !exists(/databases/$(database)/documents/settings/bootstrap_lock))
+                     || (key != 'bootstrap_lock' && roleIn(['owner', 'manager']));
+      allow update, delete: if key != 'bootstrap_lock' && roleIn(['owner', 'manager']);
     }
 
     // ------------------------------------------------------- master data

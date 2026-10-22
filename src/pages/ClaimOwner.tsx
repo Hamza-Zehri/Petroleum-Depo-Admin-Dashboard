@@ -5,7 +5,7 @@ import { Icon } from "../components/Icons";
 
 // Shown when a Firebase Auth account exists (e.g. one created in the Firebase
 // console) but has no `users/{uid}` profile yet. Claiming makes it the depot
-// owner and writes the one-time `settings/__bootstrap__` lock atomically, so it
+// owner and writes the one-time `settings/bootstrap_lock` lock atomically, so it
 // only works while the depot has no owner.
 export default function ClaimOwner() {
   const { user, claimOwner, logout } = useAuth();

@@ -212,14 +212,14 @@ export async function setSetting(key: string, value: string): Promise<void> {
   await setDoc(doc(db, COLLECTIONS.settings, key), { id: key, value }, { merge: true });
 }
 
-export function useSettings(): { settings: Record<string, string>; loading: boolean } {
-  const { data, loading } = useCollection<{ id: string; value: string }>(COLLECTIONS.settings);
+export function useSettings(): { settings: Record<string, string>; loading: boolean; error: string | null } {
+  const { data, loading, error } = useCollection<{ id: string; value: string }>(COLLECTIONS.settings);
   const settings = useMemo(() => {
     const out: Record<string, string> = {};
     for (const s of data) out[s.id] = s.value == null ? "" : String(s.value);
     return out;
   }, [data]);
-  return { settings, loading };
+  return { settings, loading, error };
 }
 
 // --------------------------------------------------- shared accounting math

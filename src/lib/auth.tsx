@@ -9,7 +9,7 @@
 //   2. Claim ownership      — an account you created in the Firebase console
 //                             signs in, and (only while no owner exists yet)
 //                             writes its own `users/{uid}` owner profile.
-// Both paths also write the one-time `settings/__bootstrap__` lock in the same
+// Both paths also write the one-time `settings/bootstrap_lock` lock in the same
 // atomic batch, so exactly one owner can ever exist.
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode,
@@ -75,8 +75,8 @@ function writeBatchOwner(uid: string, username: string, fullName: string) {
   });
   // The lock may only be created while it does not yet exist (security rules),
   // so a second owner can never claim the depot.
-  batch.set(doc(db, COLLECTIONS.settings, "__bootstrap__"), {
-    id: "__bootstrap__",
+  batch.set(doc(db, COLLECTIONS.settings, "bootstrap_lock"), {
+    id: "bootstrap_lock",
     value: uid,
     owner_uid: uid,
     created_at: now,

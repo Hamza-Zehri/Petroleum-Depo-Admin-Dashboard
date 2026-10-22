@@ -38,7 +38,7 @@ function useLastActivity(): string {
 
 export default function Layout() {
   const { user, logout } = useAuth();
-  const { settings } = useSettings();
+  const { settings, error: settingsError } = useSettings();
   const [collapsed, setCollapsed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
@@ -62,7 +62,9 @@ export default function Layout() {
     <div className={`app ${collapsed ? "sidebar-collapsed" : ""}`}>
       <aside className="sidebar">
         <div className="brand">
-          <span className="brand-mark"><Icon name="fuel" size={21} /></span>
+          <span className="brand-mark">
+            <img src="/icon.png" alt="Logo" style={{ width: 26, height: 26, objectFit: "contain", borderRadius: 6 }} />
+          </span>
           <div><strong>{depotName}</strong><small>{t.appSub}</small></div>
           <button className="collapse" onClick={() => setCollapsed(!collapsed)} aria-label="مینو"><Icon name="menu" /></button>
         </div>
@@ -121,6 +123,23 @@ export default function Layout() {
           </div>
         </header>
         <main>
+          {settingsError && settingsError.toLowerCase().includes("not found") && (
+            <div style={{
+              background: "#FFF5DC",
+              color: "#A85E08",
+              border: "1px solid #F6D68F",
+              borderRadius: 8,
+              padding: "12px 16px",
+              margin: "16px 24px 0",
+              fontSize: 14,
+              lineHeight: 1.6,
+            }}>
+              <strong>توجہ: Firebase Firestore ڈیٹا بیس تلاش نہیں ہو سکا (Database '(default)' not found)۔</strong>
+              <div style={{ marginTop: 4, fontSize: 13, color: "#744204" }}>
+                Firebase Console (<a href="https://console.firebase.google.com/project/petroleum-depot/firestore" target="_blank" rel="noreferrer" style={{ textDecoration: "underline", fontWeight: 700 }}>console.firebase.google.com</a>) پر جائیں اور <strong>Build &gt; Firestore Database</strong> میں جا کر <strong>"Create database"</strong> منتخب کریں تاکہ کلاؤڈ ڈیٹا فعال ہو سکے۔
+              </div>
+            </div>
+          )}
           <h2 className="sr-only">{currentTitle ? t.nav[currentTitle.key] : ""}</h2>
           <Outlet />
         </main>

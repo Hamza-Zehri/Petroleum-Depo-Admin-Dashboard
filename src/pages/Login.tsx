@@ -20,7 +20,12 @@ export default function Login() {
       else await bootstrapOwner(email, password, fullName);
       toast("خوش آمدید");
     } catch (e) {
-      toast((e as Error).message || "لاگ ان ناکام", "danger");
+      const msg = (e as Error).message || "لاگ ان ناکام";
+      if (msg.includes("not found") || msg.includes("(default)")) {
+        toast("ڈیٹا بیس '(default)' دستیاب نہیں ہے۔ Firebase Console میں ڈیٹا بیس بنائیں", "danger");
+      } else {
+        toast(msg, "danger");
+      }
     } finally { setBusy(false); }
   }
 

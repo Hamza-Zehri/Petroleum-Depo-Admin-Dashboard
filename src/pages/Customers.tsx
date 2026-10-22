@@ -7,6 +7,9 @@ import { createRecord, patchRecord, deleteRecord, byDateDesc } from "../lib/repo
 import { postCustomerPayment } from "../lib/posting";
 import { useAuth } from "../lib/auth";
 import { exportCsv } from "../lib/print";
+import { CsvImportModal } from "../components/CsvImportModal";
+import { downloadTemplate } from "../lib/csv";
+import { normalizePhone, D2 } from "../lib/csv";
 
 type Doc = Record<string, unknown>;
 interface Form { id?: string; name: string; company: string; contact: string; address: string; opening_balance: string; credit_limit: string; active: boolean }
@@ -21,6 +24,7 @@ export default function Customers() {
   const [pay, setPay] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const balanceOf = (id: string) => d.customerBalances.find((b) => b.customerId === id)?.due ?? D(0);
 
@@ -48,6 +52,8 @@ export default function Customers() {
           { header: "Name", value: (c) => String(c.name) }, { header: "Contact", value: (c) => String(c.contact ?? "") },
           { header: "Opening", value: (c) => String(c.opening_balance) }, { header: "Due", value: (c) => balanceOf(String(c.id)).toFixed(2) },
         ], rows)}>CSV</Button>
+        <Button variant="secondary" icon="download" onClick={() => downloadTemplate("customer-template.csv", ["customer_name", "phone", "business_name", "address", "opening_balance", "credit_limit", "notes"], ["Sample Customer", "03001234567", "Sample Traders", "Sample Address", "0", "50000", "Sample note"])}>Template</Button>
+        <Button variant="secondary" icon="upload" onClick={() => setImportOpen(true)}>Import CSV</Button>
         <Button variant="primary" icon="plus" onClick={() => setForm({ ...blank })}>نیا گاہک</Button>
       </PageHeader>
 
@@ -118,6 +124,61 @@ export default function Customers() {
 
       {detail && <CustomerDetail id={detail} onClose={() => setDetail(null)} />}
       {pay && <PaymentModal customerId={pay} onClose={() => setPay(null)} />}
+
+      {importOpen && (
+        <CsvImportModal
+          config={{
+            title: "Import Customers from CSV",
+            templateFilename: "customer-template.csv",
+            templateHeaders: ["customer_name", "phone", "business_name", "address", "opening_balance", "credit_limit", "notes"],
+            templateSample: ["Sample Customer", "03001234567", "Sample Traders", "Sample Address", "0", "50000", "Sample note"],
+            expectedHeaders: ["customer_name", "phone", "business_name", "address", "opening_balance", "credit_limit", "notes"],
+            headerLabels: { customer_name: "Name", phone: "Phone", business_name: "Business", address: "Address", opening_balance: "Opening", credit_limit: "Credit limit", notes: "Notes" },
+            validateRow: (v) => {
+              const errs: string[] = [];
+              if (!v.customer_name.trim()) errs.push("Missing customer name");
+              if (!D2(v.opening_balance)) errs.push("Invalid opening balance");
+              if (v.credit_limit && !D2(v.credit_limit)) errs.push("Invalid credit limit");
+              if (errs.length) return { ok: false, errors: errs };
+              return {
+                ok: true, errors: [], data: {
+                  name: v.customer_name.trim(),
+                  company: v.business_name,
+                  contact: v.phone,
+                  address: v.address,
+                  opening_balance: (v.opening_balance === "" ? "0" : v.opening_balance),
+                  credit_limit: v.credit_limit || null,
+                  notes: v.notes,
+                  active: true,
+                },
+              };
+            },
+            duplicateKey: (d: any) => {
+              const ph = normalizePhone(String(d.contact ?? ""));
+              return ph ? `phone:${ph}` : `name:${String(d.name).toLowerCase().trim()}`;
+            },
+            existing: d.customers as any,
+            existingDuplicateKey: (r: any) => {
+              const ph = normalizePhone(String(r.contact ?? ""));
+              return ph ? `phone:${ph}` : `name:${String(r.name ?? "").toLowerCase().trim()}`;
+            },
+            onImport: async (rows: any[]) => {
+              let created = 0;
+              for (const r of rows) {
+                await createRecord("customers", {
+                  name: r.name, company: r.company, contact: r.contact, address: r.address,
+                  opening_balance: D(r.opening_balance).toFixed(2),
+                  credit_limit: r.credit_limit ? D(r.credit_limit).toFixed(2) : null,
+                  notes: r.notes, active: true, created_by: user?.uid ?? "web",
+                }, { createdBy: user?.uid });
+                created++;
+              }
+              return { created, skipped: 0 };
+            },
+          }}
+          onClose={() => setImportOpen(false)}
+        />
+      )}
     </>
   );
 }

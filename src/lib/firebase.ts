@@ -22,7 +22,7 @@ export const firebaseConfig = {
 };
 
 // The Firebase Auth account that owns this depot. On its first sign-in the app
-// writes the `users/{uid}` owner profile + the one-time `settings/__bootstrap__`
+// writes the `users/{uid}` owner profile + the one-time `settings/bootstrap_lock`
 // lock automatically (see src/lib/auth.tsx), so no manual step is required.
 // Override with VITE_OWNER_UID when pointing at a different project.
 export const OWNER_UID: string =
