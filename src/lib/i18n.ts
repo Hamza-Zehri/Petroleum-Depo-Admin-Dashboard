@@ -109,6 +109,8 @@ export const ur = {
   downloadErrorReport: "خرابی رپورٹ ڈاؤنلوڈ",
   cancelImport: "منسوخ",
   required: "ضروری",
+  settings: "ترتیبات",
+  settingsDesc: "ڈپو کی ترتیبات اور کنفیگریشن",
 } as const;
 
 export const en = {
@@ -222,6 +224,8 @@ export const en = {
   downloadErrorReport: "Download error report",
   cancelImport: "Cancel",
   required: "required",
+  settings: "Settings",
+  settingsDesc: "Depot settings and configuration",
 } as const;
 
 export type Dict = {

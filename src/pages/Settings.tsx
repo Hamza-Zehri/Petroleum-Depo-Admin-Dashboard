@@ -24,6 +24,7 @@ export default function Settings() {
   const { settings } = useSettings();
   const { user } = useAuth();
   const toast = useToast();
+  const { t } = useLang();
   const { lang, setLang } = useLang();
   const { theme, setTheme } = useTheme();
   const nav = useNavigate();
@@ -42,7 +43,7 @@ export default function Settings() {
 
   return (
     <>
-      <PageHeader eyebrow="ڈپو" title="ڈپو کی ترتیبات" description="بنیادی معلومات، کاروباری اصول اور منتظم لنکس">
+      <PageHeader eyebrow={t.all} title={t.settings} description={t.settingsDesc ?? "Settings"}>
         <Button variant="primary" icon="check" disabled={busy} onClick={saveAll}>محفوظ کریں</Button>
       </PageHeader>
 
