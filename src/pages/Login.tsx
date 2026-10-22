@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useAuth } from "../lib/auth";
 import { useLang } from "../lib/lang";
+import { useTheme } from "../lib/theme";
 import { Button, Field, useToast } from "../components/ui";
 import { Icon } from "../components/Icons";
 
 export default function Login() {
   const { login, bootstrapOwner } = useAuth();
   const { t, lang, setLang } = useLang();
+  const { theme, toggle: toggleTheme } = useTheme();
   const toast = useToast();
   const [mode, setMode] = useState<"login" | "bootstrap">("login");
   const [email, setEmail] = useState("");
@@ -33,9 +35,12 @@ export default function Login() {
 
   return (
     <div className="modal-backdrop" style={{ placeItems: "center" }}>
-      <div style={{ position: "absolute", top: 16, right: 16 }}>
+      <div style={{ position: "absolute", top: 16, right: 16, display: "flex", gap: 8 }}>
         <button className="btn btn-secondary" style={{ padding: "6px 10px", fontSize: 12 }} onClick={() => setLang(lang === "en" ? "ur" : "en")}>
           {lang === "en" ? "اردو" : "English"}
+        </button>
+        <button className="btn btn-secondary" style={{ padding: "6px 10px", fontSize: 12 }} onClick={toggleTheme}>
+          {theme === "dark" ? "☀" : "🌙"}
         </button>
       </div>
       <div className="modal" style={{ width: "min(430px,100%)" }}>

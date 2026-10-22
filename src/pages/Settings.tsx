@@ -6,6 +6,7 @@ import { useSettings, setSetting } from "../lib/repo";
 import { useAuth } from "../lib/auth";
 import { ROLE_LABELS } from "../lib/types";
 import { useLang } from "../lib/lang";
+import { useTheme } from "../lib/theme";
 
 const FIELDS: { key: string; label: string; latin?: boolean; type?: string }[] = [
   { key: "depot_name", label: "ڈپو کا نام" },
@@ -24,6 +25,7 @@ export default function Settings() {
   const { user } = useAuth();
   const toast = useToast();
   const { lang, setLang } = useLang();
+  const { theme, setTheme } = useTheme();
   const nav = useNavigate();
   const [form, setForm] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
@@ -91,6 +93,14 @@ export default function Settings() {
         <div style={{ display: "flex", gap: 8 }}>
           <Button variant={lang === "en" ? "primary" : "secondary"} onClick={() => setLang("en")}>English</Button>
           <Button variant={lang === "ur" ? "primary" : "secondary"} onClick={() => setLang("ur")}>اردو</Button>
+        </div>
+      </Card>
+
+      <Card className="settings-form" style={{ marginTop: 16 }}>
+        <div className="card-head"><div><h2>Theme / تھیم</h2><p>Light or dark mode</p></div></div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Button variant={theme === "light" ? "primary" : "secondary"} onClick={() => setTheme("light")}>☀ Light</Button>
+          <Button variant={theme === "dark" ? "primary" : "secondary"} onClick={() => setTheme("dark")}>🌙 Dark</Button>
         </div>
       </Card>
     </>

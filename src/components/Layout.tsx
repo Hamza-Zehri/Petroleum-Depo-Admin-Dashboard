@@ -6,6 +6,7 @@ import { useSettings, useCollection } from "../lib/repo";
 import { ROLE_LABELS } from "../lib/types";
 import { fmtTime } from "../lib/format";
 import { useLang } from "../lib/lang";
+import { useTheme } from "../lib/theme";
 
 const NAV = [
   { to: "/dashboard", key: "dashboard", icon: "grid" },
@@ -40,6 +41,7 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const { settings, error: settingsError } = useSettings();
   const { t, lang, setLang } = useLang();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
@@ -110,6 +112,9 @@ export default function Layout() {
           <button className="bell" aria-label="اطلاعات"><Icon name="bell" /><span className="latin">0</span></button>
           <button className="btn btn-secondary" style={{ padding: "6px 10px", fontSize: 12 }} onClick={() => setLang(lang === "en" ? "ur" : "en")} aria-label="Language">
             {lang === "en" ? "اردو" : "English"}
+          </button>
+          <button className="btn btn-secondary" style={{ padding: "6px 10px", fontSize: 12 }} onClick={toggleTheme} aria-label="Theme">
+            {theme === "dark" ? "☀ Light" : "🌙 Dark"}
           </button>
           <div className="profile-wrap">
             <button className="profile" onClick={() => setMenuOpen((v) => !v)} aria-haspopup="menu" aria-expanded={menuOpen}>
