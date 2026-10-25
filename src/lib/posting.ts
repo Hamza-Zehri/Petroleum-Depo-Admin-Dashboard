@@ -12,6 +12,7 @@ import { collection, doc, getDocs, increment, query, serverTimestamp, where, wri
 import { db } from "./firebase";
 import { COLLECTIONS } from "./types";
 import { ADMIN_DEVICE_ID, newId, refNo } from "./repo";
+import { currentT } from "./lang";
 import { D, businessDate } from "./format";
 import Decimal from "decimal.js";
 
@@ -173,7 +174,7 @@ export async function postPurchase(input: PostPurchaseInput): Promise<{ id: stri
     const pid = newId();
     batch.set(doc(db, COLLECTIONS.supplierPayments, pid), meta({
       id: pid, ref_no: refNo("SPY"), supplier_id: input.supplier_id, amount: paid.toFixed(2),
-      method: input.payment_method, reference_no: ref, notes: "خریداری کے وقت ادائیگی",
+      method: input.payment_method, reference_no: ref, notes: currentT().paymentAtPurchase,
       business_date: bd, idempotency_key: pid, status: "posted",
     }, input));
     const ce = cashEntry(input, "out", input.payment_method, "purchase", paid, "purchases", id, bd, "PAY");
@@ -332,7 +333,7 @@ export async function reverseTransaction(input: ReverseInput): Promise<void> {
       id: id2, entry_time: new Date().toISOString(), business_date: bd, tank_id: row.tank_id,
       fuel_type: row.fuel_type, movement: movement === "in" ? "out" : "in",
       quantity: row.quantity, balance_after: "", ref_type: "reversal", ref_id: input.id,
-      notes: `منسوخی: ${input.reason}`,
+      notes: `${currentT().reversalPrefix} ${input.reason}`,
     }, input));
   });
 
@@ -343,7 +344,7 @@ export async function reverseTransaction(input: ReverseInput): Promise<void> {
     batch.set(doc(db, COLLECTIONS.cashbook, id2), meta({
       id: id2, ref_no: refNo("REV"), entry_date: new Date().toISOString(), business_date: bd,
       dir: String(row.dir) === "in" ? "out" : "in", category: "reversal", amount: row.amount,
-      method: row.method, description: `منسوخی: ${input.reason}`, related_table: row.related_table,
+      method: row.method, description: `${currentT().reversalPrefix} ${input.reason}`, related_table: row.related_table,
       related_id: input.id,
     }, input));
   });

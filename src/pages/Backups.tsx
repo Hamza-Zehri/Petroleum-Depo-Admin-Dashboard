@@ -146,7 +146,7 @@ export default function Backups() {
     try {
       await deleteRecord("backups", String(s.id));
       if (viewing && viewing.id === s.id) setViewing(null);
-      toast(t.delete);
+      toast(t.deleted);
     } catch (e) {
       toast((e as Error).message, "danger");
     }

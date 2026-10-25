@@ -21,6 +21,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     try { localStorage.setItem(STORAGE_KEY, theme); } catch { /* ignore */ }
     if (typeof document !== "undefined") {
       document.documentElement.setAttribute("data-theme", theme);
+      document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", theme === "dark" ? "dark" : "light");
     }
   }, [theme]);
 

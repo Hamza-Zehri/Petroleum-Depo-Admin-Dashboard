@@ -34,10 +34,10 @@ export type Perm =
   | "viewAudit";
 
 export const ROLE_LABELS: Record<Role, string> = {
-  owner: "مالک",
-  manager: "منیجر",
-  accountant: "اکاؤنٹنٹ",
-  operator: "آپریٹر",
+  owner: "Owner",
+  manager: "Manager",
+  accountant: "Accountant",
+  operator: "Operator",
 };
 
 const ROLE_PERMS: Record<Role, Perm[]> = {

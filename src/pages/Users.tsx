@@ -5,19 +5,14 @@ import { Card, Button, PageHeader, Modal, Field, StatusBadge, EmptyState, useToa
 import { Icon } from "../components/Icons";
 import { fmtDate, fmtDateTime } from "../lib/format";
 import { createRecord, patchRecord, deleteRecord, useCollection, byDateDesc } from "../lib/repo";
-import { ROLE_LABELS, can, type Role, type Perm } from "../lib/types";
+import { can, type Role, type Perm } from "../lib/types";
 import { useAuth } from "../lib/auth";
 import { useLang } from "../lib/lang";
+import { permLabel, roleLabel } from "../lib/labels";
 
 type Doc = Record<string, unknown>;
 const ROLES: Role[] = ["owner", "manager", "accountant", "operator"];
 const PERMS: Perm[] = ["receiveFuel", "loadFuel", "receivePayment", "paySupplier", "addExpense", "changeRates", "stockAdjust", "reverseTransaction", "viewFinancialReports", "closeDay", "manageUsers", "manageTanks", "manageMasterData", "exportBackup", "viewAudit"];
-const PERM_LABELS: Record<Perm, string> = {
-  receiveFuel: "ایندھن موصول", loadFuel: "ایندھن بھرائی", receivePayment: "وصولی", paySupplier: "سپلائر ادائیگی",
-  addExpense: "خرچ", changeRates: "ریٹ تبدیلی", stockAdjust: "اسٹاک ایڈجسٹ", reverseTransaction: "منسوخی",
-  viewFinancialReports: "مالی رپورٹس", closeDay: "دن بند", manageUsers: "صارفین", manageTanks: "ٹینکس",
-  manageMasterData: "بنیادی ڈیٹا", exportBackup: "بیک اپ", viewAudit: "آڈٹ",
-};
 
 interface Form { email: string; password: string; full_name: string; role: Role }
 
@@ -33,46 +28,46 @@ export default function Users() {
   const rows = useMemo(() => byDateDesc(users, "created_at"), [users]);
 
   async function createUser(f: Form) {
-    if (!f.email || f.password.length < 6 || !f.full_name) { toast("تمام خانے بھریں (پاس ورڈ 6+ حروف)", "danger"); return; }
+    if (!f.email || f.password.length < 6 || !f.full_name) { toast(t.allFieldsRequired, "danger"); return; }
     setBusy(true);
     try {
       const cred = await createUserWithEmailAndPassword(secondaryAuth(), f.email.trim(), f.password);
       await createRecord("users", { id: cred.user.uid, username: f.email.trim(), full_name: f.full_name, role: f.role, active: true, created_by: me?.uid }, { createdBy: me?.uid });
       await fbSignOut(secondaryAuth());
-      toast("صارف بن گیا"); setForm(null);
+      toast(t.accountCreated); setForm(null);
     } catch (e) { toast((e as Error).message, "danger"); } finally { setBusy(false); }
   }
 
   async function saveEdit(doc: Doc, role: Role, active: boolean, fullName: string) {
-    try { await patchRecord("users", String(doc.id), { role, active, full_name: fullName }); toast("اپ ڈیٹ"); setEdit(null); }
+    try { await patchRecord("users", String(doc.id), { role, active, full_name: fullName }); toast(t.userUpdated); setEdit(null); }
     catch (e) { toast((e as Error).message, "danger"); }
   }
 
   return (
     <>
       <PageHeader eyebrow={t.all} title={t.usersTitle} description={t.usersDesc}>
-        <Button variant="primary" icon="plus" onClick={() => setForm({ email: "", password: "", full_name: "", role: "operator" })}>نیا صارف</Button>
+        <Button variant="primary" icon="plus" onClick={() => setForm({ email: "", password: "", full_name: "", role: "operator" })}>{t.newUser}</Button>
       </PageHeader>
 
-      {error && <div className="notice warning"><Icon name="alert" /><div><strong>اجازت نہیں</strong><span>{error}</span></div></div>}
+      {error && <div className="notice warning"><Icon name="alert" /><div><strong>{t.noPermission}</strong><span>{error}</span></div></div>}
 
       <Card>
-        <div className="card-head"><div><h2>صارفین</h2><p>{rows.length} اکاؤنٹ</p></div></div>
-        {loading ? <EmptyState icon="device" title="لوڈ ہو رہا ہے…" /> : rows.length === 0 ? <EmptyState icon="device" title="کوئی صارف نہیں" /> : (
+        <div className="card-head"><div><h2>{t.nav.users}</h2><p>{rows.length} {t.accountsCount}</p></div></div>
+        {loading ? <EmptyState icon="device" title={t.loadingUsers} /> : rows.length === 0 ? <EmptyState icon="device" title={t.noUsers} /> : (
           <div className="table-scroll"><table>
-            <thead><tr><th>نام</th><th>ای میل</th><th>کردار</th><th>حالت</th><th>آخری لاگ ان</th><th></th></tr></thead>
+            <thead><tr><th>{t.name}</th><th>{t.email}</th><th>{t.role}</th><th>{t.statusHeader}</th><th>{t.lastLogin}</th><th></th></tr></thead>
             <tbody>
               {rows.map((u) => (
                 <tr key={String(u.id)}>
-                  <td>{String(u.full_name)} {String(u.id) === me?.uid && <small style={{ color: "var(--green-700)" }}>(آپ)</small>}</td>
+                  <td>{String(u.full_name)} {String(u.id) === me?.uid && <small style={{ color: "var(--green-700)" }}>{t.you}</small>}</td>
                   <td className="latin">{String(u.username)}</td>
-                  <td>{ROLE_LABELS[(u.role as Role) ?? "operator"]}</td>
-                  <td><StatusBadge status={u.active === false ? "failed" : "active"} /></td>
+                  <td>{roleLabel(String(u.role), t)}</td>
+                  <td><StatusBadge status={u.active === false ? "inactive" : "active"} /></td>
                   <td>{fmtDateTime(String(u.last_login ?? "")) || "—"}</td>
                   <td>
                     <div className="table-tools">
-                      <button onClick={() => setEdit(u)} title="ترمیم"><Icon name="file" size={13} /></button>
-                      <button onClick={async () => { if (String(u.id) === me?.uid) { toast("خود کو حذف نہیں کر سکتے", "danger"); return; } if (!confirm("پروفائل حذف کریں؟")) return; try { await deleteRecord("users", String(u.id)); toast("حذف"); } catch (e) { toast((e as Error).message, "danger"); } }} title="حذف">×</button>
+                      <button onClick={() => setEdit(u)} title={t.edit}><Icon name="file" size={13} /></button>
+                      <button onClick={async () => { if (String(u.id) === me?.uid) { toast(t.cannotDeleteSelf, "danger"); return; } if (!confirm(t.confirmDeleteProfile)) return; try { await deleteRecord("users", String(u.id)); toast(t.deleted); } catch (e) { toast((e as Error).message, "danger"); } }} title={t.delete}>×</button>
                     </div>
                   </td>
                 </tr>
@@ -83,27 +78,27 @@ export default function Users() {
       </Card>
 
       <Card>
-        <div className="card-head"><div><h2>اجازت میٹرکس</h2><p>کردار کے مطابق اجازتیں</p></div></div>
+        <div className="card-head"><div><h2>{t.permissionMatrix}</h2><p>{t.rolePermissions}</p></div></div>
         <div className="table-scroll"><table>
-          <thead><tr><th>اجازت</th>{ROLES.map((r) => <th key={r}>{ROLE_LABELS[r]}</th>)}</tr></thead>
-          <tbody>{PERMS.map((p) => (<tr key={p}><td>{PERM_LABELS[p]}</td>{ROLES.map((r) => <td key={r}>{can(r, p) ? <Badge tone="success" /> : <span style={{ color: "var(--slate-300)" }}>—</span>}</td>)}</tr>))}</tbody>
+          <thead><tr><th>{t.permissionCol}</th>{ROLES.map((r) => <th key={r}>{roleLabel(r, t)}</th>)}</tr></thead>
+          <tbody>{PERMS.map((p) => (<tr key={p}><td>{permLabel(p, t)}</td>{ROLES.map((r) => <td key={r}>{can(r, p) ? <Badge tone="success" /> : <span style={{ color: "var(--slate-500)" }}>—</span>}</td>)}</tr>))}</tbody>
         </table></div>
       </Card>
 
       {form && (
-        <Modal title="نیا صارف" onClose={() => setForm(null)} footer={<>
-          <Button onClick={() => setForm(null)}>منسوخ</Button>
-          <Button variant="primary" disabled={busy} onClick={() => createUser(form)}>اکاؤنٹ بنائیں</Button>
+        <Modal title={t.newUser} onClose={() => setForm(null)} footer={<>
+          <Button onClick={() => setForm(null)}>{t.cancel}</Button>
+          <Button variant="primary" disabled={busy} onClick={() => createUser(form)}>{t.createAccount}</Button>
         </>}>
           <div className="form-grid">
-            <Field label="پورا نام" full><input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></Field>
-            <Field label="ای میل"><input className="latin" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
-            <Field label="پاس ورڈ"><input className="latin" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></Field>
-            <Field label="کردار">
-              <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as Role })}>{ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}</select>
+            <Field label={t.fullName} full><input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></Field>
+            <Field label={t.email}><input className="latin" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
+            <Field label={t.password}><input className="latin" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></Field>
+            <Field label={t.role}>
+              <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as Role })}>{ROLES.map((r) => <option key={r} value={r}>{roleLabel(r, t)}</option>)}</select>
             </Field>
           </div>
-          <p className="insight" style={{ marginTop: 12 }}><Icon name="alert" size={14} /> اکاؤنٹ Firebase Auth میں بنتا ہے؛ لاگ ان کی اجازت Firestore رولز سے مشروط ہے۔</p>
+          <p className="insight" style={{ marginTop: 12 }}><Icon name="alert" size={14} /> {t.accountInFirebase}</p>
         </Modal>
       )}
 
@@ -115,18 +110,19 @@ export default function Users() {
 function Badge({ tone }: { tone: string }) { return <span className={`badge badge-${tone}`}><span className="badge-dot" /></span>; }
 
 function EditUser({ u, onClose, onSave }: { u: Doc; onClose: () => void; onSave: (d: Doc, r: Role, a: boolean, n: string) => void }) {
+  const { t } = useLang();
   const [role, setRole] = useState<Role>((u.role as Role) ?? "operator");
   const [active, setActive] = useState(u.active !== false);
   const [name, setName] = useState(String(u.full_name));
   return (
-    <Modal title={`ترمیم — ${name}`} onClose={onClose} footer={<>
-      <Button onClick={onClose}>منسوخ</Button>
-      <Button variant="primary" onClick={() => onSave(u, role, active, name)}>محفوظ کریں</Button>
+    <Modal title={`${t.editUser} — ${name}`} onClose={onClose} footer={<>
+      <Button onClick={onClose}>{t.cancel}</Button>
+      <Button variant="primary" onClick={() => onSave(u, role, active, name)}>{t.save}</Button>
     </>}>
       <div className="form-grid">
-        <Field label="پورا نام" full><input value={name} onChange={(e) => setName(e.target.value)} /></Field>
-        <Field label="کردار"><select value={role} onChange={(e) => setRole(e.target.value as Role)}>{ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}</select></Field>
-        <Field label="فعال"><select value={String(active)} onChange={(e) => setActive(e.target.value === "true")}><option value="true">ہاں</option><option value="false">نہیں</option></select></Field>
+        <Field label={t.fullName} full><input value={name} onChange={(e) => setName(e.target.value)} /></Field>
+        <Field label={t.role}><select value={role} onChange={(e) => setRole(e.target.value as Role)}>{ROLES.map((r) => <option key={r} value={r}>{roleLabel(r, t)}</option>)}</select></Field>
+        <Field label={t.active}><select value={String(active)} onChange={(e) => setActive(e.target.value === "true")}><option value="true">{t.yes}</option><option value="false">{t.no}</option></select></Field>
       </div>
     </Modal>
   );

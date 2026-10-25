@@ -4,6 +4,7 @@ import { useLang } from "../lib/lang";
 import { Card, PageHeader, Button, EmptyState } from "../components/ui";
 import { D, money, moneyCompact, qty, fmtDate, todayIso } from "../lib/format";
 import { withinPeriod } from "../lib/repo";
+import { depotDisplayName, fuelLabel } from "../lib/labels";
 import { exportCsv, printHtml, reportHeader } from "../lib/print";
 
 function monthsAgo(n: number) { const x = new Date(); x.setMonth(x.getMonth() - n); x.setDate(1); return x.toISOString().slice(0, 10); }
@@ -38,14 +39,14 @@ export default function Profit() {
   }), [d.sales, from, to]);
 
   function printStatement() {
-    const depot = { name: d.settings.depot_name || "پٹرولیم ڈپو", contact: d.settings.depot_contact, address: d.settings.depot_address };
-    printHtml("نفع و نقصان گوشوارہ", `${reportHeader(depot, "نفع و نقصان گوشوارہ", `${fmtDate(from)} تا ${fmtDate(to)}`)}
+    const depot = { name: depotDisplayName(d.settings.depot_name, t), contact: d.settings.depot_contact, address: d.settings.depot_address };
+    printHtml(t.profitStatement, `${reportHeader(depot, t.profitStatement, `${fmtDate(from)} ${t.until} ${fmtDate(to)}`)}
       <table>
-        <tr><th>کل فروخت (آمدنی)</th><td class="latin">${money(pnl.revenue)}</td></tr>
-        <tr><th>منہا: لاگتِ مال (COGS)</th><td class="latin">${money(pnl.cogs)}</td></tr>
-        <tr class="total"><th>مجموعی نفع</th><td class="latin">${money(pnl.gross)}</td></tr>
-        <tr><th>منہا: اخراجات</th><td class="latin">${money(pnl.expenseTotal)}</td></tr>
-        <tr class="total"><th>خالص نفع</th><td class="latin">${money(pnl.net)}</td></tr>
+        <tr><th>${t.revenue}</th><td class="latin">${money(pnl.revenue)}</td></tr>
+        <tr><th>${t.cogs}</th><td class="latin">${money(pnl.cogs)}</td></tr>
+        <tr class="total"><th>${t.grossProfit}</th><td class="latin">${money(pnl.gross)}</td></tr>
+        <tr><th>${t.expenses}</th><td class="latin">${money(pnl.expenseTotal)}</td></tr>
+        <tr class="total"><th>${t.netProfit}</th><td class="latin">${money(pnl.net)}</td></tr>
       </table>`);
   }
 
@@ -57,47 +58,47 @@ export default function Profit() {
         <input className="date-control latin" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
         <input className="date-control latin" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
         <Button variant="secondary" icon="download" onClick={() => exportCsv("profit", [
-          { header: "Metric", value: (r) => r.k }, { header: "Amount", value: (r) => r.v },
-        ], [{ k: "Revenue", v: pnl.revenue.toFixed(2) }, { k: "COGS", v: pnl.cogs.toFixed(2) }, { k: "Gross", v: pnl.gross.toFixed(2) }, { k: "Expenses", v: pnl.expenseTotal.toFixed(2) }, { k: "Net", v: pnl.net.toFixed(2) }])}>CSV</Button>
-        <Button variant="primary" icon="print" onClick={printStatement}>پرنٹ</Button>
+          { header: t.category, value: (r) => r.k }, { header: t.amount, value: (r) => r.v },
+        ], [{ k: t.revenue, v: pnl.revenue.toFixed(2) }, { k: t.cogs, v: pnl.cogs.toFixed(2) }, { k: t.grossProfit, v: pnl.gross.toFixed(2) }, { k: t.expenses, v: pnl.expenseTotal.toFixed(2) }, { k: t.netProfit, v: pnl.net.toFixed(2) }])}>CSV</Button>
+        <Button variant="primary" icon="print" onClick={printStatement}>{t.print}</Button>
       </PageHeader>
 
       <div className="profit-strip">
-        <div><span>کل آمدنی</span><strong>{moneyCompact(pnl.revenue)}</strong></div>
-        <div><span>لاگتِ مال</span><strong>{moneyCompact(pnl.cogs)}</strong></div>
-        <div><span>مجموعی نفع</span><strong>{moneyCompact(pnl.gross)}</strong><span className="badge badge-success">{marginPctNum}% مارجن</span></div>
-        <div><span>اخراجات</span><strong>{moneyCompact(pnl.expenseTotal)}</strong></div>
-        <div><span>خالص نفع</span><strong style={{ color: pnl.net.gte(0) ? "#7ff0c0" : "#ffb4b4" }}>{moneyCompact(pnl.net)}</strong></div>
+        <div><span>{t.revenue}</span><strong>{moneyCompact(pnl.revenue)}</strong></div>
+        <div><span>{t.cogs}</span><strong>{moneyCompact(pnl.cogs)}</strong></div>
+        <div><span>{t.grossProfit}</span><strong>{moneyCompact(pnl.gross)}</strong><span className="badge badge-success">{marginPctNum}% {t.margin}</span></div>
+        <div><span>{t.expenses}</span><strong>{moneyCompact(pnl.expenseTotal)}</strong></div>
+        <div><span>{t.netProfit}</span><strong style={{ color: pnl.net.gte(0) ? "#7ff0c0" : "#ffb4b4" }}>{moneyCompact(pnl.net)}</strong></div>
       </div>
 
       <div className="pnl-layout">
         <Card>
-          <div className="card-head"><div><h2>آمدنی گوشوارہ</h2><p>{fmtDate(from)} — {fmtDate(to)}</p></div></div>
-          {pnl.revenue.lte(0) && pnl.expenseTotal.lte(0) ? <EmptyState icon="chart" title="اس مدت میں کوئی ڈیٹا نہیں" /> : (
+          <div className="card-head"><div><h2>{t.revenueStatement}</h2><p>{fmtDate(from)} — {fmtDate(to)}</p></div></div>
+          {pnl.revenue.lte(0) && pnl.expenseTotal.lte(0) ? <EmptyState icon="chart" title={t.noDataInPeriod} /> : (
             <>
-              <div className="statement-row"><span>کل فروخت</span><strong>{money(pnl.revenue)}</strong><small>{pnl.salesCount} ریکارڈ</small></div>
-              <div className="statement-row"><span>منہا: لاگتِ مال (COGS)</span><strong>−{money(pnl.cogs)}</strong></div>
-              <div className="statement-row total"><span>مجموعی نفع</span><strong>{money(pnl.gross)}</strong></div>
-              <div className="statement-row"><span>منہا: اخراجات</span><strong>−{money(pnl.expenseTotal)}</strong></div>
-              <div className="statement-row total"><span>خالص نفع / نقصان</span><strong>{money(pnl.net)}</strong></div>
-              <div className="definition"><strong>نفع = آمدنی − (لاگتِ مال + اخراجات)</strong><p>لاگتِ مال وزنی اوسط طریقے سے فی لیٹر شمار کی جاتی ہے اور ہر فروخت کے وقت محفوظ ہوتی ہے۔</p></div>
+              <div className="statement-row"><span>{t.revenue}</span><strong>{money(pnl.revenue)}</strong><small>{pnl.salesCount} {t.records}</small></div>
+              <div className="statement-row"><span>{t.cogs}</span><strong>−{money(pnl.cogs)}</strong></div>
+              <div className="statement-row total"><span>{t.grossProfit}</span><strong>{money(pnl.gross)}</strong></div>
+              <div className="statement-row"><span>{t.expenses}</span><strong>−{money(pnl.expenseTotal)}</strong></div>
+              <div className="statement-row total"><span>{t.netProfitLoss}</span><strong>{money(pnl.net)}</strong></div>
+              <div className="definition"><strong>{t.profitFormula}</strong><p>{t.cogsNote}</p></div>
             </>
           )}
         </Card>
 
         <Card>
-          <div className="card-head"><div><h2>ایندھن کے حساب سے منافع</h2><p>فی لیٹر مارجن</p></div></div>
+          <div className="card-head"><div><h2>{t.profitByFuel}</h2><p>{t.marginPerLiter}</p></div></div>
           {fuelRows.map((f) => (
             <div className="fuel-profit" key={f.fuel}>
               <div><span className={`fuel-mark ${f.fuel}`} /></div>
               <div style={{ flex: 1 }}>
-                <span>{f.fuel === "petrol" ? "پٹرول" : "ڈیزل"}</span>
+                <span>{fuelLabel(f.fuel, t)}</span>
                 <strong>{money(f.gross)}</strong>
-                <small>فروخت {qty(f.litres)} · فی لیٹر مارجن {money(f.margin)}</small>
+                <small>{t.soldLitres} {qty(f.litres)} · {t.marginPerLiter} {money(f.margin)}</small>
               </div>
             </div>
           ))}
-          <div className="review-block"><span>کل خریداری (اس مدت)</span><strong>{money(totalPurchase)}</strong></div>
+          <div className="review-block"><span>{t.totalPurchasesPeriod}</span><strong>{money(totalPurchase)}</strong></div>
         </Card>
       </div>
     </>

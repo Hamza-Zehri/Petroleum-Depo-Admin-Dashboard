@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Icon } from "./Icons";
 import { useAuth } from "../lib/auth";
 import { useSettings, useCollection } from "../lib/repo";
-import { ROLE_LABELS } from "../lib/types";
+import { depotDisplayName, ownerDisplayName, roleLabel } from "../lib/labels";
 import { fmtTime } from "../lib/format";
 import { useLang } from "../lib/lang";
 import { useTheme } from "../lib/theme";
@@ -58,8 +58,9 @@ export default function Layout() {
     return () => { window.removeEventListener("online", on); window.removeEventListener("offline", off); };
   }, []);
 
-  const depotName = settings.depot_name || "پٹرولیم ڈپو";
-  const initials = (user?.fullName ?? "؟").trim().slice(0, 1);
+  const depotName = depotDisplayName(settings.depot_name, t);
+  const displayName = ownerDisplayName(user?.fullName, t);
+  const initials = (displayName || "?").trim().slice(0, 1);
   const currentTitle = NAV.find((n) => loc.pathname.startsWith(n.to));
 
   return (
@@ -70,9 +71,9 @@ export default function Layout() {
             <img src="/icon.png" alt="Logo" style={{ width: 26, height: 26, objectFit: "contain", borderRadius: 6 }} />
           </span>
           <div><strong>{depotName}</strong><small>{t.appSub}</small></div>
-          <button className="collapse" onClick={() => setCollapsed(!collapsed)} aria-label="مینو"><Icon name="menu" /></button>
+          <button className="collapse" onClick={() => setCollapsed(!collapsed)} aria-label={t.menu}><Icon name="menu" /></button>
         </div>
-        <nav aria-label="مرکزی نیویگیشن">
+        <nav aria-label={t.mainNavigation}>
           {NAV.map((n) => (
             <NavLink key={n.to} to={n.to} className={({ isActive }) => (isActive ? "active" : "")} title={t.nav[n.key]}>
               <Icon name={n.icon} /><span>{t.nav[n.key]}</span>
@@ -83,50 +84,50 @@ export default function Layout() {
           <div className="server-status">
             <span className="pulse" style={{ background: online ? "#2ad49b" : "#e49419" }} />
             <div>
-              <strong>{online ? "کلاؤڈ سے جڑا ہوا" : "آف لائن"}</strong>
-              <small>{lastActivity ? `آخری فعالیت ${fmtTime(lastActivity)}` : "Firestore · لائیو"}</small>
+              <strong>{online ? t.cloudConnected : t.offline}</strong>
+              <small>{lastActivity ? `${t.lastActivityLabel} ${fmtTime(lastActivity)}` : t.firestoreLive}</small>
             </div>
           </div>
           <div className="depot-mini">
             <span>{initials}</span>
-            <div><strong>{user?.fullName ?? "—"}</strong><small>{user ? ROLE_LABELS[user.role] : ""}</small></div>
+            <div><strong>{displayName || "—"}</strong><small>{user ? roleLabel(user.role, t) : ""}</small></div>
           </div>
         </div>
       </aside>
 
       <div className="workspace">
         <header className="topbar">
-          <button className="mobile-menu" onClick={() => setCollapsed(!collapsed)} aria-label="مینو"><Icon name="menu" /></button>
+          <button className="mobile-menu" onClick={() => setCollapsed(!collapsed)} aria-label={t.menu}><Icon name="menu" /></button>
           <div className="global-search">
             <Icon name="search" />
-            <input placeholder="گاہک، رسید، گاڑی تلاش کریں…" aria-label="گلوبل تلاش"
+            <input placeholder={t.globalSearchPlaceholder} aria-label={t.globalSearch}
               onKeyDown={(e) => { if (e.key === "Enter") nav("/reports"); }} />
             <kbd className="latin">Ctrl K</kbd>
           </div>
           <div className="top-status">
             <div style={{ paddingInlineStart: 13 }}>
               <span className={`status-dot ${online ? "success" : "warning"}`} />
-              <small>کلاؤڈ سنک</small>
-              <strong>{online ? "فعال" : "زیرِ التوا"}</strong>
+              <small>{t.cloudSync}</small>
+              <strong>{online ? t.status.active : t.status.pending}</strong>
             </div>
           </div>
-          <button className="bell" aria-label="اطلاعات"><Icon name="bell" /><span className="latin">0</span></button>
-          <button className="btn btn-secondary" style={{ padding: "6px 10px", fontSize: 12 }} onClick={() => setLang(lang === "en" ? "ur" : "en")} aria-label="Language">
-            {lang === "en" ? "اردو" : "English"}
+          <button className="bell" aria-label={t.notifications}><Icon name="bell" /><span className="latin">0</span></button>
+          <button className="btn btn-secondary" style={{ padding: "6px 10px", fontSize: 12 }} onClick={() => setLang(lang === "en" ? "ur" : "en")} aria-label={t.language}>
+            {lang === "en" ? "Urdu" : "English"}
           </button>
-          <button className="btn btn-secondary" style={{ padding: "6px 10px", fontSize: 12 }} onClick={toggleTheme} aria-label="Theme">
-            {theme === "dark" ? "☀ Light" : "🌙 Dark"}
+          <button className="btn btn-secondary" style={{ padding: "6px 10px", fontSize: 12 }} onClick={toggleTheme} aria-label={t.theme}>
+            {theme === "dark" ? `☀ ${t.light}` : `🌙 ${t.dark}`}
           </button>
           <div className="profile-wrap">
             <button className="profile" onClick={() => setMenuOpen((v) => !v)} aria-haspopup="menu" aria-expanded={menuOpen}>
               <span>{initials}</span>
-              <div><strong>{user?.fullName}</strong><small>{user ? ROLE_LABELS[user.role] : ""}</small></div>
+              <div><strong>{displayName}</strong><small>{user ? roleLabel(user.role, t) : ""}</small></div>
               <span>⌄</span>
             </button>
             {menuOpen && (
               <div className="profile-menu" role="menu">
-                <div className="pm-head"><strong>{user?.email}</strong><small>{user ? ROLE_LABELS[user.role] : ""}</small></div>
-                <button role="menuitem" onClick={() => { setMenuOpen(false); nav("/settings"); }}><Icon name="settings" size={15} /> ڈپو کی ترتیبات</button>
+                <div className="pm-head"><strong>{user?.email}</strong><small>{user ? roleLabel(user.role, t) : ""}</small></div>
+                <button role="menuitem" onClick={() => { setMenuOpen(false); nav("/settings"); }}><Icon name="settings" size={15} /> {t.depotSettings}</button>
                 <button role="menuitem" className="danger" onClick={() => logout()}><Icon name="logout" size={15} /> {t.logout}</button>
               </div>
             )}
@@ -134,19 +135,12 @@ export default function Layout() {
         </header>
         <main>
           {settingsError && settingsError.toLowerCase().includes("not found") && (
-            <div style={{
-              background: "#FFF5DC",
-              color: "#A85E08",
-              border: "1px solid #F6D68F",
-              borderRadius: 8,
-              padding: "12px 16px",
-              margin: "16px 24px 0",
-              fontSize: 14,
-              lineHeight: 1.6,
-            }}>
-              <strong>توجہ: Firebase Firestore ڈیٹا بیس تلاش نہیں ہو سکا (Database '(default)' not found)۔</strong>
-              <div style={{ marginTop: 4, fontSize: 13, color: "#744204" }}>
-                Firebase Console (<a href="https://console.firebase.google.com/project/petroleum-depot/firestore" target="_blank" rel="noreferrer" style={{ textDecoration: "underline", fontWeight: 700 }}>console.firebase.google.com</a>) پر جائیں اور <strong>Build &gt; Firestore Database</strong> میں جا کر <strong>"Create database"</strong> منتخب کریں تاکہ کلاؤڈ ڈیٹا فعال ہو سکے۔
+            <div className="notice warning" style={{ margin: "16px 24px 0" }}>
+              <div>
+                <strong>{t.firebaseNotFoundTitle}</strong>
+                <span>
+                  {t.firebaseNotFoundBody} <a href="https://console.firebase.google.com/project/petroleum-depot/firestore" target="_blank" rel="noreferrer" style={{ textDecoration: "underline", fontWeight: 700 }}>console.firebase.google.com</a>
+                </span>
               </div>
             </div>
           )}

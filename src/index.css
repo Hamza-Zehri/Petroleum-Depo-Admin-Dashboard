@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
-:root{--navy-950:#071827;--navy-900:#0b2235;--navy-800:#12344d;--navy-700:#1a4867;--green-700:#08795c;--green-600:#099268;--green-100:#daf5eb;--blue-700:#1769aa;--blue-100:#e4f2fd;--amber-700:#a65d05;--amber-100:#fff0ce;--red-700:#ba2d32;--red-100:#fde6e6;--slate-900:#18232d;--slate-700:#405262;--slate-600:#60717f;--slate-500:#7e8d99;--slate-300:#cdd6dc;--slate-200:#e3e9ed;--slate-100:#f1f5f7;--slate-50:#f7f9fa;--white:#fff;--shadow:0 1px 2px rgba(7,24,39,.05),0 7px 24px rgba(7,24,39,.04);--radius:12px}
+:root{--navy-950:#071827;--navy-900:#0b2235;--navy-800:#12344d;--navy-700:#1a4867;--green-700:#08795c;--green-600:#099268;--green-100:#daf5eb;--blue-700:#1769aa;--blue-100:#e4f2fd;--amber-700:#955301;--amber-100:#fff0ce;--red-700:#ba2d32;--red-100:#fde6e6;--slate-900:#18232d;--slate-700:#405262;--slate-600:#576877;--slate-500:#5f7182;--slate-300:#cdd6dc;--slate-200:#e3e9ed;--slate-100:#f1f5f7;--slate-50:#f7f9fa;--white:#fff;--shadow:0 1px 2px rgba(7,24,39,.05),0 7px 24px rgba(7,24,39,.04);--radius:12px}
 *{box-sizing:border-box}
 body{margin:0;background:var(--slate-50);color:var(--slate-900);font-family:Inter,Arial,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
 button,input,select{font:inherit}button{cursor:pointer}.icon{display:inline-block;flex:none}
@@ -106,3 +106,35 @@ html[dir="rtl"] .app-loading{min-height:100vh;display:grid;place-items:center}
 [data-theme="dark"] .card-head p,[data-theme="dark"] .page-heading p,[data-theme="dark"] .eyebrow{color:var(--slate-600)}
 [data-theme="dark"] .profile small,[data-theme="dark"] .metric-top{color:var(--slate-600)}
 [data-theme="dark"] .modal-head p,[data-theme="dark"] .center{color:var(--slate-600)}
+
+/* Dark-mode contrast fixes: muted text, notices, badges, form controls */
+[data-theme="dark"]{
+  --green-700:#34d399;--green-600:#10b981;--green-100:#0d2e24;
+  --blue-700:#60a5fa;--blue-100:#1e2a45;
+  --amber-700:#fbbf24;--amber-100:#2a2415;
+  --red-700:#ef4444;--red-100:#2a1a1a;
+  --slate-900:#f1f5f9;--slate-700:#cbd5e1;--slate-600:#b6c3d1;--slate-500:#94a3b8;
+  --slate-300:#475569;--slate-200:#1f2937;--slate-100:#162033;--slate-50:#0f172a;
+}
+[data-theme="dark"] .notice{background:var(--white);border-color:var(--slate-200);color:var(--slate-900)}
+[data-theme="dark"] .notice span,[data-theme="dark"] .offline-banner span{color:var(--slate-600)}
+[data-theme="dark"] .notice.warning{background:var(--amber-100);border-color:#6b5217;color:#fcd34d}
+[data-theme="dark"] .notice.warning span{color:#fcd34d}
+[data-theme="dark"] .demo-banner{background:var(--blue-100);border-color:#1e40af;color:#bfdbfe}
+[data-theme="dark"] .demo-banner button{color:#93c5fd}
+[data-theme="dark"] .review-block{background:var(--slate-100);border-color:var(--slate-200);color:var(--slate-900)}
+[data-theme="dark"] .review-block span,[data-theme="dark"] .review-block small{color:var(--slate-600)}
+[data-theme="dark"] .definition p{color:var(--slate-700)}
+[data-theme="dark"] .badge-info{color:#93c5fd}
+[data-theme="dark"] .badge-danger{color:#fca5a5}
+[data-theme="dark"] .danger-text{color:#fca5a5!important}
+[data-theme="dark"] .btn-primary{background:#10b981;border-color:#10b981;color:#052e22}
+[data-theme="dark"] .btn-primary:hover{background:#34d399;border-color:#34d399;color:#052e22}
+[data-theme="dark"] .btn-danger{background:#b91c1c;border-color:#b91c1c}
+[data-theme="dark"] .btn-danger:hover{background:#991b1b;border-color:#991b1b}
+[data-theme="dark"] .bell span{background:#dc2626}
+[data-theme="dark"] .global-search kbd{background:var(--slate-100);border-color:var(--slate-300);color:var(--slate-600)}
+[data-theme="dark"] .filter-select,[data-theme="dark"] .date-control{background:var(--white);color:var(--slate-900);border-color:var(--slate-300)}
+[data-theme="dark"] .filter-search input{color:var(--slate-900)}
+[data-theme="dark"] input::placeholder,[data-theme="dark"] textarea::placeholder{color:#94a3b8}
+[data-theme="dark"] .toast-info>span{background:#2563eb}

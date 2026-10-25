@@ -3,6 +3,7 @@ import { Card, Button, PageHeader, Modal, EmptyState, Badge } from "../component
 import { Icon } from "../components/Icons";
 import { useDepot } from "../lib/store";
 import { useLang } from "../lib/lang";
+import { fuelLabel, methodLabel } from "../lib/labels";
 import { D, money, fmtDate } from "../lib/format";
 import { exportCsv } from "../lib/print";
 import type Decimal from "decimal.js";
@@ -121,7 +122,7 @@ export default function Ledger() {
         .map((s) => ({
           date: String(s.business_date ?? s.created_at ?? ""),
           ref: String(s.ref_no ?? s.id),
-          label: `${t.salesTitle} · ${String(s.fuel_type ?? "")}`,
+          label: `${t.salesTitle} · ${fuelLabel(String(s.fuel_type ?? ""), t)}`,
           amount: D(s.due_amount as string),
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
@@ -134,7 +135,7 @@ export default function Ledger() {
         .map((p) => ({
           date: String(p.business_date ?? p.created_at ?? ""),
           ref: String(p.ref_no ?? p.id),
-          label: `${t.receivePayment} · ${String(p.method ?? "")}`,
+          label: `${t.receivePayment} · ${methodLabel(String(p.method ?? ""), t)}`,
           amount: D(p.amount as string),
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
@@ -148,7 +149,7 @@ export default function Ledger() {
         .map((p) => ({
           date: String(p.business_date ?? p.created_at ?? ""),
           ref: String(p.ref_no ?? p.id),
-          label: `${t.purchasesTitle} · ${String(p.fuel_type ?? "")}`,
+          label: `${t.purchasesTitle} · ${fuelLabel(String(p.fuel_type ?? ""), t)}`,
           amount: D(p.total_amount as string),
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
@@ -161,7 +162,7 @@ export default function Ledger() {
         .map((p) => ({
           date: String(p.business_date ?? p.created_at ?? ""),
           ref: String(p.ref_no ?? p.id),
-          label: `${t.payable} · ${String(p.method ?? "")}`,
+          label: `${t.payable} · ${methodLabel(String(p.method ?? ""), t)}`,
           amount: D(p.amount as string),
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
@@ -177,12 +178,12 @@ export default function Ledger() {
     exportCsv(
       `${tab}-ledger.csv`,
       [
-        { header: "Name", value: (r: AccountRow) => r.name },
-        { header: "Phone", value: (r: AccountRow) => r.contact },
-        { header: "Opening", value: (r: AccountRow) => r.opening.toFixed(2) },
-        { header: tab === "customers" ? "Invoiced" : "Purchased", value: (r: AccountRow) => r.total.toFixed(2) },
-        { header: "Paid", value: (r: AccountRow) => r.paid.toFixed(2) },
-        { header: "Balance", value: (r: AccountRow) => r.due.toFixed(2) },
+        { header: t.name, value: (r: AccountRow) => r.name },
+        { header: t.phone, value: (r: AccountRow) => r.contact },
+        { header: t.openingBalance, value: (r: AccountRow) => r.opening.toFixed(2) },
+        { header: tab === "customers" ? t.invoiced : t.purchasesLabel, value: (r: AccountRow) => r.total.toFixed(2) },
+        { header: t.paidLabel, value: (r: AccountRow) => r.paid.toFixed(2) },
+        { header: t.balance, value: (r: AccountRow) => r.due.toFixed(2) },
       ],
       rows,
     );

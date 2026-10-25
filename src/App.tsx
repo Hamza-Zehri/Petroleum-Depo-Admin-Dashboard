@@ -1,6 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./lib/auth";
-import { LangProvider } from "./lib/lang";
+import { LangProvider, useLang } from "./lib/lang";
 import { ThemeProvider } from "./lib/theme";
 import { DepotProvider } from "./lib/store";
 import { ToastProvider, LoadingState } from "./components/ui";
@@ -27,7 +27,8 @@ import Settings from "./pages/Settings";
 
 function Routed() {
   const { ready, user, profileMissing } = useAuth();
-  if (!ready) return <div className="app-loading"><LoadingState label="فائر بیس سے کنکشن…" /></div>;
+  const { t } = useLang();
+  if (!ready) return <div className="app-loading"><LoadingState label={t.connectingFirebase} /></div>;
   if (!user) return <Login />;
   if (profileMissing) return <ClaimOwner />;
   return (

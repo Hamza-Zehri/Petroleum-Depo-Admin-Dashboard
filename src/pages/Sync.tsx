@@ -6,6 +6,7 @@ import { Icon } from "../components/Icons";
 import { fmtDateTime } from "../lib/format";
 import { useCollection, byDateDesc, patchRecord, ADMIN_DEVICE_ID } from "../lib/repo";
 import { useAuth } from "../lib/auth";
+import { roleLabel } from "../lib/labels";
 
 type Doc = Record<string, unknown>;
 
@@ -127,7 +128,7 @@ export default function Sync() {
                 return (
                   <tr key={String(dev.id)}>
                     <td>{String(dev.name ?? dev.id)}</td>
-                    <td>{String(dev.role ?? "—")}</td>
+                    <td>{roleLabel(String(dev.role ?? ""), t) || "—"}</td>
                     <td>{fmtDateTime(String(dev.registered_at ?? ""))}</td>
                     <td>{fmtDateTime(String(dev.last_seen ?? ""))}</td>
                     <td>

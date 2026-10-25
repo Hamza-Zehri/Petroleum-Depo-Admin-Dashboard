@@ -22,11 +22,11 @@ export default function Login() {
     try {
       if (mode === "login") await login(email, password);
       else await bootstrapOwner(email, password, fullName);
-      toast("OK");
+      toast(t.loginSuccess);
     } catch (e) {
       const msg = (e as Error).message || "";
       if (msg.includes("not found") || msg.includes("(default)")) {
-        toast("Firebase: create Firestore database in console first.", "danger");
+        toast(t.firestoreSetup, "danger");
       } else {
         toast(msg || t.loginError, "danger");
       }
@@ -37,7 +37,7 @@ export default function Login() {
     <div className="modal-backdrop" style={{ placeItems: "center" }}>
       <div style={{ position: "absolute", top: 16, right: 16, display: "flex", gap: 8 }}>
         <button className="btn btn-secondary" style={{ padding: "6px 10px", fontSize: 12 }} onClick={() => setLang(lang === "en" ? "ur" : "en")}>
-          {lang === "en" ? "اردو" : "English"}
+          {lang === "en" ? "Urdu" : "English"}
         </button>
         <button className="btn btn-secondary" style={{ padding: "6px 10px", fontSize: 12 }} onClick={toggleTheme}>
           {theme === "dark" ? "☀" : "🌙"}
@@ -50,12 +50,12 @@ export default function Login() {
             <div><h2 style={{ margin: 0 }}>{t.appName}</h2><p>{t.adminDashboard}</p></div>
           </div>
         </div>
-        <div className="modal-body" style={{ background: "#fff" }}>
+        <div className="modal-body">
           <h3>{mode === "login" ? t.login : t.createOwner}</h3>
           <p className="center">{mode === "login" ? t.loginSub : t.createOwnerHint}</p>
           <div className="form-grid" style={{ gridTemplateColumns: "1fr" }}>
             {mode === "bootstrap" && (
-              <Field label="Full name"><input value={fullName} onChange={(e) => setFullName(e.target.value)} /></Field>
+              <Field label={t.fullName}><input value={fullName} onChange={(e) => setFullName(e.target.value)} /></Field>
             )}
             <Field label={t.email}><input className="latin" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" /></Field>
             <Field label={t.password}><input className="latin" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" /></Field>

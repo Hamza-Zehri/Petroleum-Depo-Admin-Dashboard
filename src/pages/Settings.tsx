@@ -5,28 +5,27 @@ import { Icon } from "../components/Icons";
 import { useSettings, setSetting } from "../lib/repo";
 import { factoryResetCloudData } from "../lib/factoryReset";
 import { useAuth } from "../lib/auth";
-import { ROLE_LABELS } from "../lib/types";
+import { roleLabel } from "../lib/labels";
 import { useLang } from "../lib/lang";
 import { useTheme } from "../lib/theme";
 
-const FIELDS: { key: string; label: string; latin?: boolean; type?: string }[] = [
-  { key: "depot_name", label: "ڈپو کا نام" },
-  { key: "depot_contact", label: "رابطہ نمبر", latin: true },
-  { key: "depot_address", label: "پتہ" },
-  { key: "currency", label: "کرنسی علامت", latin: true },
-  { key: "business_day_start_hour", label: "کاروباری دن شروع گھنٹہ", latin: true, type: "number" },
-  { key: "receipt_width", label: "رسید چوڑائی (mm)", latin: true, type: "number" },
-  { key: "petrol_rate", label: "پٹرول کا موجودہ ریٹ", latin: true },
-  { key: "diesel_rate", label: "ڈیزل کا موجودہ ریٹ", latin: true },
-  { key: "low_stock_threshold", label: "کم اسٹاک حد (%)", latin: true, type: "number" },
+const FIELDS: { key: string; labelKey: "depotName" | "contactNumber" | "address" | "currencySymbol" | "businessStartHour" | "receiptWidth" | "petrolRate" | "dieselRate" | "lowStockThreshold"; latin?: boolean; type?: string }[] = [
+  { key: "depot_name", labelKey: "depotName" },
+  { key: "depot_contact", labelKey: "contactNumber", latin: true },
+  { key: "depot_address", labelKey: "address" },
+  { key: "currency", labelKey: "currencySymbol", latin: true },
+  { key: "business_day_start_hour", labelKey: "businessStartHour", latin: true, type: "number" },
+  { key: "receipt_width", labelKey: "receiptWidth", latin: true, type: "number" },
+  { key: "petrol_rate", labelKey: "petrolRate", latin: true },
+  { key: "diesel_rate", labelKey: "dieselRate", latin: true },
+  { key: "low_stock_threshold", labelKey: "lowStockThreshold", latin: true, type: "number" },
 ];
 
 export default function Settings() {
   const { settings } = useSettings();
   const { user } = useAuth();
   const toast = useToast();
-  const { t } = useLang();
-  const { lang, setLang } = useLang();
+  const { t, lang, setLang } = useLang();
   const { theme, setTheme } = useTheme();
   const nav = useNavigate();
   const [form, setForm] = useState<Record<string, string>>({});
@@ -44,7 +43,7 @@ export default function Settings() {
     setBusy(true);
     try {
       for (const f of FIELDS) if (form[f.key] !== undefined) await setSetting(f.key, form[f.key] ?? "");
-      toast("ترتیبات محفوظ ہو گئیں");
+      toast(t.settingsSaved);
     } catch (e) { toast((e as Error).message, "danger"); } finally { setBusy(false); }
   }
 
@@ -79,17 +78,17 @@ export default function Settings() {
 
   return (
     <>
-      <PageHeader eyebrow={t.all} title={t.settings} description={t.settingsDesc ?? "Settings"}>
-        <Button variant="primary" icon="check" disabled={busy} onClick={saveAll}>محفوظ کریں</Button>
+      <PageHeader eyebrow={t.all} title={t.settings} description={t.settingsDesc}>
+        <Button variant="primary" icon="check" disabled={busy} onClick={saveAll}>{t.save}</Button>
       </PageHeader>
 
       <div className="settings-layout">
         <Card className="settings-nav">
-          <button className="active">ڈپو کی معلومات <Icon name="chevron" size={13} /></button>
-          <button onClick={() => nav("/users")}>صارفین <Icon name="chevron" size={13} /></button>
-          <button onClick={() => nav("/backups")}>بیک اپ</button>
-          <button onClick={() => nav("/sync")}>سنک</button>
-          <button onClick={() => nav("/receipts")}>رسید ترتیبات</button>
+          <button className="active">{t.depotInfo} <Icon name="chevron" size={13} /></button>
+          <button onClick={() => nav("/users")}>{t.nav.users} <Icon name="chevron" size={13} /></button>
+          <button onClick={() => nav("/backups")}>{t.nav.backups}</button>
+          <button onClick={() => nav("/sync")}>{t.nav.sync}</button>
+          <button onClick={() => nav("/receipts")}>{t.receiptSettings}</button>
           {isOwner && (
             <button className="danger-text" onClick={openReset}>
               {t.factoryReset} <Icon name="alert" size={13} />
@@ -98,51 +97,51 @@ export default function Settings() {
         </Card>
 
         <Card className="settings-form">
-          <div className="card-head"><div><h2>ڈپو کی معلومات</h2><p>رسیدوں اور رپورٹس پر ظاہر ہوتی ہیں</p></div>
-            <span className="badge badge-info">{user ? ROLE_LABELS[user.role] : ""}</span>
+          <div className="card-head"><div><h2>{t.depotInfo}</h2><p>{t.shownOnReceipts}</p></div>
+            <span className="badge badge-info">{user ? roleLabel(user.role, t) : ""}</span>
           </div>
           <div className="form-grid">
             {FIELDS.map((f) => (
-              <Field key={f.key} label={f.label} full={!f.latin}>
+              <Field key={f.key} label={t[f.labelKey]} full={!f.latin}>
                 <input className={f.latin ? "latin" : ""} type={f.type ?? "text"} value={form[f.key] ?? ""} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
               </Field>
             ))}
           </div>
           <div className="form-actions">
-            <Button variant="primary" icon="check" disabled={busy} onClick={saveAll}>محفوظ کریں</Button>
+            <Button variant="primary" icon="check" disabled={busy} onClick={saveAll}>{t.save}</Button>
           </div>
         </Card>
       </div>
 
       <Card>
-        <div className="card-head"><div><h2>تیز روابط</h2><p>انتظامی صفحات</p></div></div>
+        <div className="card-head"><div><h2>{t.quickLinks}</h2><p>{t.adminPages}</p></div></div>
         <div className="quick-grid">
-          <Button icon="device" onClick={() => nav("/users")}>صارفین</Button>
-          <Button icon="shield" onClick={() => nav("/backups")}>بیک اپ</Button>
-          <Button icon="sync" onClick={() => nav("/sync")}>سنک</Button>
-          <Button icon="print" onClick={() => nav("/receipts")}>رسیدیں</Button>
-          <Button icon="tank" onClick={() => nav("/stock")}>ٹینکس</Button>
-          <Button icon="chart" onClick={() => nav("/reports")}>رپورٹس</Button>
+          <Button icon="device" onClick={() => nav("/users")}>{t.nav.users}</Button>
+          <Button icon="shield" onClick={() => nav("/backups")}>{t.nav.backups}</Button>
+          <Button icon="sync" onClick={() => nav("/sync")}>{t.nav.sync}</Button>
+          <Button icon="print" onClick={() => nav("/receipts")}>{t.receiptsList}</Button>
+          <Button icon="tank" onClick={() => nav("/stock")}>{t.tank}</Button>
+          <Button icon="chart" onClick={() => nav("/reports")}>{t.nav.reports}</Button>
         </div>
       </Card>
 
       <div className="notice" style={{ marginTop: 14 }}>
-        <Icon name="shield" /><div><strong>سیکیورٹی</strong><span>نقشِ راست (firestore.rules) میں کردار کے مطابق رسائی محدود ہے۔ ریٹ تبدیلی و منسوخی صرف مجاز کردار کر سکتے ہیں۔</span></div>
+        <Icon name="shield" /><div><strong>{t.security}</strong><span>{t.securityDesc}</span></div>
       </div>
 
       <Card className="settings-form" style={{ marginTop: 16 }}>
-        <div className="card-head"><div><h2>Language / زبان</h2><p>Switch the dashboard language</p></div></div>
+        <div className="card-head"><div><h2>{t.language}</h2><p>{t.languageDesc}</p></div></div>
         <div style={{ display: "flex", gap: 8 }}>
           <Button variant={lang === "en" ? "primary" : "secondary"} onClick={() => setLang("en")}>English</Button>
-          <Button variant={lang === "ur" ? "primary" : "secondary"} onClick={() => setLang("ur")}>اردو</Button>
+          <Button variant={lang === "ur" ? "primary" : "secondary"} onClick={() => setLang("ur")}>{lang === "en" ? "Urdu" : "اردو"}</Button>
         </div>
       </Card>
 
       <Card className="settings-form" style={{ marginTop: 16 }}>
-        <div className="card-head"><div><h2>Theme / تھیم</h2><p>Light or dark mode</p></div></div>
+        <div className="card-head"><div><h2>{t.theme}</h2><p>{t.themeDesc}</p></div></div>
         <div style={{ display: "flex", gap: 8 }}>
-          <Button variant={theme === "light" ? "primary" : "secondary"} onClick={() => setTheme("light")}>☀ Light</Button>
-          <Button variant={theme === "dark" ? "primary" : "secondary"} onClick={() => setTheme("dark")}>🌙 Dark</Button>
+          <Button variant={theme === "light" ? "primary" : "secondary"} onClick={() => setTheme("light")}>☀ {t.light}</Button>
+          <Button variant={theme === "dark" ? "primary" : "secondary"} onClick={() => setTheme("dark")}>🌙 {t.dark}</Button>
         </div>
       </Card>
 

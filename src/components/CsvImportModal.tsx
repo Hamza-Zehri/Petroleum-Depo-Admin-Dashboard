@@ -83,7 +83,7 @@ export function CsvImportModal<T>({
       }
 
       if (table.rows.length > SHEET_MAX_ROWS) {
-        setParseErrors([`Too many rows (max ${SHEET_MAX_ROWS}).`]);
+        setParseErrors([`${t.tooManyRows} ${SHEET_MAX_ROWS}.`]);
         setParsed([]);
         return;
       }
@@ -266,7 +266,7 @@ export function CsvImportModal<T>({
                 <tr>
                   <th>#</th>
                   {config.templateHeaders.map((h) => <th key={h}>{config.headerLabels[h] ?? h}</th>)}
-                  <th>{t.syncDeviceStatus}</th>
+                  <th>{t.statusHeader}</th>
                 </tr>
               </thead>
               <tbody>

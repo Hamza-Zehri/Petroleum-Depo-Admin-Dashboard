@@ -21,6 +21,7 @@ import {
 import { doc, getDoc, writeBatch } from "firebase/firestore";
 import { auth, db, OWNER_UID } from "./firebase";
 import { COLLECTIONS, type Role } from "./types";
+import { currentT } from "./lang";
 
 export interface SessionUser {
   uid: string;
@@ -71,13 +72,13 @@ async function ownerProfileWrite(
   // deleted), only the profile is recreated — the lock must never be updated.
   const lockSnap = await getDoc(LOCK_REF);
   if (lockSnap.exists() && lockSnap.data()?.owner_uid !== uid) {
-    throw new Error("پہلے سے کوئی مالک موجود ہے");
+    throw new Error(currentT().ownerExists);
   }
   const batch = writeBatch(db);
   batch.set(doc(db, COLLECTIONS.users, uid), {
     id: uid,
     username,
-    full_name: fullName || "مالک",
+    full_name: fullName || currentT().ownerName,
     role: "owner",
     active: true,
     created_at: now,
@@ -112,8 +113,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (missing && fb.uid === OWNER_UID) {
             // Configured owner account: provision its owner profile + lock now.
             try {
-              await ownerProfileWrite(fb.uid, fb.email ?? "مالک", "ڈپو مالک");
-              setUser({ uid: fb.uid, email: fb.email, fullName: "ڈپو مالک", role: "owner" });
+              await ownerProfileWrite(fb.uid, fb.email ?? currentT().ownerName, currentT().ownerName);
+              setUser({ uid: fb.uid, email: fb.email, fullName: currentT().ownerName, role: "owner" });
               setProfileMissing(false);
             } catch {
               setUser(session);
@@ -148,9 +149,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const bootstrapOwner = useCallback(async (email: string, password: string, fullName: string) => {
     // Refuse before creating an orphan Auth account if a depot owner already exists.
     const lockSnap = await getDoc(LOCK_REF);
-    if (lockSnap.exists()) throw new Error("پہلے سے کوئی مالک موجود ہے");
+    if (lockSnap.exists()) throw new Error(currentT().ownerExists);
     const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
-    const name = fullName.trim() || "مالک";
+    const name = fullName.trim() || currentT().ownerName;
     await ownerProfileWrite(cred.user.uid, email.trim(), fullName.trim());
     setUser({ uid: cred.user.uid, email: cred.user.email, fullName: name, role: "owner" });
     setProfileMissing(false);
@@ -160,8 +161,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // the depot has no owner yet. Fails harmlessly once a different owner exists.
   const claimOwner = useCallback(async (fullName: string) => {
     const fb = auth.currentUser;
-    if (!fb) throw new Error("پہلے لاگ ان کریں");
-    const name = fullName.trim() || fb.email || "مالک";
+    if (!fb) throw new Error(currentT().loginRequired);
+    const name = fullName.trim() || fb.email || currentT().ownerName;
     await ownerProfileWrite(fb.uid, fb.email ?? name, name);
     setUser({ uid: fb.uid, email: fb.email, fullName: name, role: "owner" });
     setProfileMissing(false);

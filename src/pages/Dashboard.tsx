@@ -60,7 +60,7 @@ export default function Dashboard() {
       </PageHeader>
 
       <div className="metrics-grid">
-        <Metric label={t.cashInHand} value={moneyShort(d.cashInHand)} meta={t.cashInHand + " · " + "cash"} tone="success" icon="wallet" onClick={() => nav("/cashbook")} />
+        <Metric label={t.cashInHand} value={moneyShort(d.cashInHand)} meta={t.cashInHand + " · " + t.cashWord} tone="success" icon="wallet" onClick={() => nav("/cashbook")} />
         <Metric label={t.bankBalance} value={moneyShort(d.bankBalance)} meta={t.bankBalance} tone="info" icon="wallet" onClick={() => nav("/cashbook")} />
         <Metric label={t.receivable} value={moneyShort(receivable)} meta={`${d.customerBalances.filter((b) => b.due.gt(0)).length} ${t.customersTitle}`.toLowerCase()} tone="warning" icon="users" onClick={() => nav("/customers")} />
         <Metric label={t.payable} value={moneyShort(payable)} meta={`${d.supplierBalances.filter((b) => b.due.gt(0)).length} ${t.suppliersTitle}`.toLowerCase()} tone="danger" icon="box" onClick={() => nav("/suppliers")} />

@@ -14,6 +14,20 @@ const Ctx = createContext<LangCtx | null>(null);
 
 const STORAGE_KEY = "pd_lang";
 
+/** Current language for non-component helpers (printing, posting, auth errors). */
+export function currentLang(): Lang {
+  try {
+    const saved = typeof localStorage !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
+    if (saved === "en" || saved === "ur") return saved;
+  } catch { /* ignore */ }
+  if (typeof document !== "undefined" && document.documentElement.lang === "en") return "en";
+  return "ur";
+}
+
+export function currentT(): Dict {
+  return currentLang() === "en" ? en : ur;
+}
+
 export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
     const saved = typeof localStorage !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
@@ -25,6 +39,8 @@ export function LangProvider({ children }: { children: ReactNode }) {
     if (typeof document !== "undefined") {
       document.documentElement.lang = lang === "en" ? "en" : "ur";
       document.documentElement.dir = lang === "en" ? "ltr" : "rtl";
+      const dict = lang === "en" ? en : ur;
+      document.title = `${dict.appName} · ${dict.adminDashboard}`;
     }
   }, [lang]);
 

@@ -54,12 +54,12 @@ export default function Stock() {
     <>
       <PageHeader eyebrow={t.all} title={t.stockTitle} description={t.stockDesc}>
         <Button variant="secondary" icon="download" onClick={() => exportCsv("stock-ledger", [
-          { header: "Date", value: (r) => String(r.business_date) },
-          { header: "Tank", value: (r) => nameOf(String(r.tank_id)) },
-          { header: "Fuel", value: (r) => String(r.fuel_type) },
-          { header: "Movement", value: (r) => String(r.movement) },
-          { header: "Qty", value: (r) => String(r.quantity) },
-          { header: "Ref", value: (r) => String(r.ref_type) },
+          { header: t.date, value: (r) => String(r.business_date) },
+          { header: t.tank, value: (r) => nameOf(String(r.tank_id)) },
+          { header: t.fuel, value: (r) => String(r.fuel_type) === "petrol" ? t.petrol : t.diesel },
+          { header: t.movement, value: (r) => String(r.movement) === "in" ? t.inMovement : String(r.movement) === "adjust" ? t.adjustMovement : t.outMovement },
+          { header: t.quantity, value: (r) => String(r.quantity) },
+          { header: t.ref, value: (r) => String(r.ref_type) },
         ], ledger)}>CSV</Button>
         <Button variant="primary" icon="plus" onClick={() => setTankForm({ ...emptyTank })}>{t.newTank}</Button>
       </PageHeader>
@@ -97,7 +97,7 @@ export default function Stock() {
                   <div><dt>{t.received}</dt><dd>{qty(s.received)}</dd></div>
                   <div><dt>{t.loadingWord}</dt><dd>{qty(s.dispatched)}</dd></div>
                   <div><dt>{t.adjust}</dt><dd>{qty(s.adjusted)}</dd></div>
-                  <div><dt>{}{t.dip}</dt><dd>{latestDip(d.tankDips, s.tankId)}</dd></div>
+                  <div><dt>{t.dip}</dt><dd>{latestDip(d.tankDips, s.tankId)}</dd></div>
                 </dl>
                 <div className="card-actions">
                   <Button icon="check" onClick={() => setDipFor(s.tankId)}>{t.dip}</Button>
@@ -263,7 +263,7 @@ function AdjustModal({ tankId, fuel, onClose }: { tankId: string; fuel: string; 
           await createRecord("audit_logs", { action: "stock_adjust", entity: "stock_adjustments", entity_id: tankId, after_json: JSON.stringify({ adjustment_qty: qtyVal, reason }), business_date: new Date().toISOString().slice(0, 10), user_id: user?.uid ?? "web", event_time: new Date().toISOString() });
           toast(t.dipSaved); onClose();
         } catch (e) { toast((e as Error).message, "danger"); } finally { setBusy(false); }
-      }}>تصدیق و درج</Button>
+      }}>{t.confirmAndPost}</Button>
     </>}>
       <div className="notice warning"><Icon name="alert" /><div><strong>{t.lowLevel}</strong><span>{t.needsRefill}</span></div></div>
       <div className="form-grid">

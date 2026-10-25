@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useState, type CSSProperties, type ReactNode } from "react";
 import { Icon } from "./Icons";
+import { useLang } from "../lib/lang";
+import { statusLabel } from "../lib/labels";
 
 export type Tone = "success" | "warning" | "danger" | "info" | "neutral";
 
@@ -56,10 +58,11 @@ export function Metric({
 export function PageHeader({
   eyebrow, title, description, children,
 }: { eyebrow?: string; title: string; description: string; children?: ReactNode }) {
+  const { t } = useLang();
   return (
     <div className="page-heading">
       <div>
-        <div className="eyebrow">{eyebrow ?? "پٹرولیم ڈپو"} <span>/</span> {title}</div>
+        <div className="eyebrow">{eyebrow ?? t.fallbackDepot} <span>/</span> {title}</div>
         <h1>{title}</h1>
         <p>{description}</p>
       </div>
@@ -79,17 +82,19 @@ export function EmptyState({ icon = "search", title, hint, action }: { icon?: st
   );
 }
 
-export function LoadingState({ label = "لوڈ ہو رہا ہے…" }: { label?: string }) {
-  return <div className="empty"><span className="spinner" /><h3>{label}</h3></div>;
+export function LoadingState({ label }: { label?: string }) {
+  const { t } = useLang();
+  return <div className="empty"><span className="spinner" /><h3>{label ?? t.loading}</h3></div>;
 }
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const { t } = useLang();
   return (
     <div className="empty">
       <Icon name="alert" size={28} />
-      <h3>ڈیٹا لوڈ نہیں ہو سکا</h3>
+      <h3>{t.errorLoading}</h3>
       <p>{message}</p>
-      {onRetry && <Button onClick={onRetry}>دوبارہ کوشش</Button>}
+      {onRetry && <Button onClick={onRetry}>{t.retry}</Button>}
     </div>
   );
 }
@@ -99,17 +104,13 @@ export function Field({ label, children, full = false }: { label: string; childr
 }
 
 export function StatusBadge({ status }: { status?: string }) {
+  const { t } = useLang();
   const s = status ?? "pending";
-  const tone: Tone = s === "paid" || s === "synced" ? "success"
-    : s === "partial" || s === "pending" || s === "conflict" ? "warning"
-    : s === "failed" || s === "unpaid" ? "danger"
-    : s === "posted" ? "info" : "neutral";
-  const label: Record<string, string> = {
-    paid: "ادا شدہ", synced: "سنک شدہ", partial: "جزوی", pending: "زیرِ التوا",
-    conflict: "تنازع", failed: "ناکام", unpaid: "غیر ادا شدہ", posted: "درج",
-    cash: "نقد", credit: "ادھار", reversed: "منسوخ",
-  };
-  return <Badge tone={tone}>{label[s] ?? s}</Badge>;
+  const tone: Tone = s === "paid" || s === "synced" || s === "active" ? "success"
+    : s === "partial" || s === "pending" || s === "conflict" || s === "syncing" ? "warning"
+    : s === "failed" || s === "unpaid" || s === "reversed" ? "danger"
+    : s === "posted" || s === "in" ? "info" : "neutral";
+  return <Badge tone={tone}>{statusLabel(s, t)}</Badge>;
 }
 
 // ---------------------------------------------------------------- toasts
@@ -143,12 +144,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 // ---------------------------------------------------------------- modal
 
 export function Modal({ title, children, onClose, footer }: { title: string; children: ReactNode; onClose: () => void; footer?: ReactNode }) {
+  const { t } = useLang();
   return (
     <div className="modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal" role="dialog" aria-modal="true" aria-label={title}>
         <div className="modal-head">
           <div><h2>{title}</h2></div>
-          <button className="close" onClick={onClose} aria-label="بند کریں">×</button>
+          <button className="close" onClick={onClose} aria-label={t.close}>×</button>
         </div>
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-foot">{footer}</div>}
