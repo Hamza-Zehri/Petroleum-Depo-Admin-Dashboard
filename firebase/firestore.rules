@@ -181,11 +181,14 @@ service cloud.firestore {
     }
 
     // ------------------------------------------------------------- audit
-    // Append-only: no client may ever edit or remove an audit entry.
+    // Append-only during normal operation. Only the owner may delete entries,
+    // which is required by the Settings → Factory Reset flow. No client may
+    // ever edit an existing audit entry.
     match /audit_logs/{id} {
       allow read: if roleIn(['owner', 'manager', 'accountant']);       // viewAudit
       allow create: if isActive();
-      allow update, delete: if false;
+      allow update: if false;
+      allow delete: if roleIn(['owner']);                              // factory reset
     }
 
     // ------------------------------------------------------------ devices
