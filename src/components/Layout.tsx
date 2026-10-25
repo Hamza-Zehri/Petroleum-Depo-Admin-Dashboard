@@ -15,6 +15,7 @@ const NAV = [
   { to: "/sales", key: "sales", icon: "fuel" },
   { to: "/customers", key: "customers", icon: "users" },
   { to: "/suppliers", key: "suppliers", icon: "box" },
+  { to: "/ledger", key: "ledger", icon: "file" },
   { to: "/cashbook", key: "cashbook", icon: "wallet" },
   { to: "/expenses", key: "expenses", icon: "download" },
   { to: "/profit", key: "profit", icon: "chart" },

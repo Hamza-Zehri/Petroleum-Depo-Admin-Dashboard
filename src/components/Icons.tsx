@@ -20,6 +20,7 @@ export function Icon({ name, size = 18 }: { name: string; size?: number }) {
     menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
     chevron: <path d="M9 18l6-6-6-6" />,
     plus: <path d="M12 5v14M5 12h14" />,
+    upload: <><path d="M12 21V9M7 14l5-5 5 5M4 3h16" /></>,
     download: <><path d="M12 3v12M7 10l5 5 5-5M4 21h16" /></>,
     alert: <><path d="M12 3L2 21h20z" /><path d="M12 9v5M12 18h.01" /></>,
     print: <><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" /><path d="M6 14h12v8H6z" /></>,

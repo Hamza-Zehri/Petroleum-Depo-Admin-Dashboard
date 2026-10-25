@@ -8,10 +8,10 @@
 //   • expense    → expenses + cashbook(out)
 // Payables use Σ supplier_payments, so a purchase paid at delivery also records
 // a supplier_payment for paid_now (keeps both balances and cash correct).
-import { collection, doc, getDocs, query, where, writeBatch } from "firebase/firestore";
+import { collection, doc, getDocs, increment, query, serverTimestamp, where, writeBatch } from "firebase/firestore";
 import { db } from "./firebase";
 import { COLLECTIONS } from "./types";
-import { newId, refNo } from "./repo";
+import { ADMIN_DEVICE_ID, newId, refNo } from "./repo";
 import { D, businessDate } from "./format";
 import Decimal from "decimal.js";
 
@@ -23,13 +23,17 @@ interface Common {
 
 function meta(extra: Record<string, unknown>, c: Common) {
   const now = new Date().toISOString();
+  const deviceId = c.deviceId ?? ADMIN_DEVICE_ID;
   return {
     version: 1,
     sync_status: "synced",
     created_at: now,
     updated_at: now,
+    updatedAt: now,
     created_by: c.actor,
-    device_id: c.deviceId ?? "web-dashboard",
+    device_id: deviceId,
+    deviceId,
+    _updatedAt: serverTimestamp(),
     ...extra,
   };
 }
@@ -38,10 +42,12 @@ function cashEntry(
   c: Common, dir: "in" | "out", method: string, category: string, amount: Decimal,
   relatedTable: string, relatedId: string, bd: string, refPrefix: string,
 ) {
+  const now = new Date().toISOString();
+  const deviceId = c.deviceId ?? ADMIN_DEVICE_ID;
   return {
     id: newId(),
     ref_no: refNo(refPrefix),
-    entry_date: new Date().toISOString(),
+    entry_date: now,
     business_date: bd,
     dir,
     category,
@@ -51,11 +57,14 @@ function cashEntry(
     related_table: relatedTable,
     related_id: relatedId,
     created_by: c.actor,
-    device_id: c.deviceId ?? "web-dashboard",
+    device_id: deviceId,
+    deviceId,
     version: 1,
     sync_status: "synced",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    created_at: now,
+    updated_at: now,
+    updatedAt: now,
+    _updatedAt: serverTimestamp(),
   };
 }
 
@@ -339,9 +348,14 @@ export async function reverseTransaction(input: ReverseInput): Promise<void> {
     }, input));
   });
 
+  const reversedAt = new Date().toISOString();
+  const deviceId = input.deviceId ?? ADMIN_DEVICE_ID;
   batch.update(doc(db, input.entity, input.id), {
     status: "reversed", reversal_reason: input.reason, reversed_by: input.actor,
-    reversed_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    reversed_at: reversedAt, updated_at: reversedAt, updatedAt: reversedAt,
+    device_id: deviceId, deviceId,
+    version: increment(1),
+    _updatedAt: serverTimestamp(),
   });
 
   await batch.commit();

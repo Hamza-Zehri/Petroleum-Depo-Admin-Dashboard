@@ -38,15 +38,15 @@ export default function Stock() {
       };
       if (f.id) await patchRecord("tanks", f.id, payload);
       else await createRecord("tanks", payload, { createdBy: user?.uid });
-      toast(f.id ? "ٹینک اپ ڈیٹ ہو گیا" : "ٹینک شامل ہو گیا");
+      toast(f.id ? t.tankUpdated : t.tankAdded);
       setTankForm(null);
     } catch (e) { toast((e as Error).message, "danger"); }
     finally { setBusy(false); }
   }
 
   async function removeTank(id: string) {
-    if (!confirm("کیا آپ واقعی یہ ٹینک حذف کرنا چاہتے ہیں؟")) return;
-    try { await deleteRecord("tanks", id); toast("ٹینک حذف ہو گیا"); }
+    if (!confirm(t.deleteTankConfirm)) return;
+    try { await deleteRecord("tanks", id); toast(t.tankDeleted); }
     catch (e) { toast((e as Error).message, "danger"); }
   }
 
@@ -61,18 +61,18 @@ export default function Stock() {
           { header: "Qty", value: (r) => String(r.quantity) },
           { header: "Ref", value: (r) => String(r.ref_type) },
         ], ledger)}>CSV</Button>
-        <Button variant="primary" icon="plus" onClick={() => setTankForm({ ...emptyTank })}>نیا ٹینک</Button>
+        <Button variant="primary" icon="plus" onClick={() => setTankForm({ ...emptyTank })}>{t.newTank}</Button>
       </PageHeader>
 
       <div className="section-tabs">
-        {([["tanks", "ٹینکس"], ["ledger", "اسٹاک لیجر"], ["dips", "ڈپس"], ["adjust", "ایڈجسٹمنٹ"]] as [Tab, string][]).map(([k, label]) => (
+        {([["tanks", t.tanksTab], ["ledger", t.stockLedgerTab], ["dips", t.dipsTab], ["adjust", t.adjustTab]] as [Tab, string][]).map(([k, label]) => (
           <button key={k} className={tab === k ? "active" : ""} onClick={() => setTab(k)}>{label}</button>
         ))}
       </div>
 
       {tab === "tanks" && (
         <div className="tank-grid">
-          {d.stocks.length === 0 && <Card><EmptyState icon="tank" title="کوئی ٹینک نہیں" hint="«نیا ٹینک» سے شامل کریں۔" /></Card>}
+          {d.stocks.length === 0 && <Card><EmptyState icon="tank" title={t.noTank} hint={t.addTankViaNew} /></Card>}
           {d.stocks.map((s) => {
             const tank = d.tanks.find((t) => String(t.id) === s.tankId);
             const cap = capOf(s.tankId);
@@ -83,27 +83,27 @@ export default function Stock() {
                 <div className="card-head">
                   <div className="tank-title">
                     <span className={`fuel-mark ${s.fuel}`} />
-                    <div><h2>{s.name}</h2><p>{s.fuel === "petrol" ? "پٹرول" : "ڈیزل"} · {String(tank?.active) === "false" ? "غیر فعال" : "فعال"}</p></div>
+                    <div><h2>{s.name}</h2><p>{s.fuel === "petrol" ? t.petrol : t.diesel} · {String(tank?.active) === "false" ? t.inactiveStatus : t.active}</p></div>
                   </div>
                   <Badge tone={tone}>{pct}%</Badge>
                 </div>
                 <div className="tank-stock">
-                  <span>موجودہ بُک اسٹاک</span>
+                  <span>{t.currentBookStock}</span>
                   <strong>{qty(s.book)}</strong>
-                  <small>گنجائش {qty(cap)} · خالی {qty(cap.minus(s.book))}</small>
+                  <small>{t.capacity} {qty(cap)} · {t.empty} {qty(cap.minus(s.book))}</small>
                 </div>
                 <Progress value={pct} tone={tone} label={s.name} />
                 <dl className="tank-facts">
-                  <div><dt>موصول</dt><dd>{qty(s.received)}</dd></div>
-                  <div><dt>بھرائی</dt><dd>{qty(s.dispatched)}</dd></div>
-                  <div><dt>ایڈجسٹ</dt><dd>{qty(s.adjusted)}</dd></div>
-                  <div><dt>آخری ڈپ</dt><dd>{latestDip(d.tankDips, s.tankId)}</dd></div>
+                  <div><dt>{t.received}</dt><dd>{qty(s.received)}</dd></div>
+                  <div><dt>{t.loadingWord}</dt><dd>{qty(s.dispatched)}</dd></div>
+                  <div><dt>{t.adjust}</dt><dd>{qty(s.adjusted)}</dd></div>
+                  <div><dt>{}{t.dip}</dt><dd>{latestDip(d.tankDips, s.tankId)}</dd></div>
                 </dl>
                 <div className="card-actions">
-                  <Button icon="check" onClick={() => setDipFor(s.tankId)}>ڈپ</Button>
-                  <Button icon="settings" onClick={() => setAdjustFor(s.tankId)}>ایڈجسٹ</Button>
-                  <Button icon="file" onClick={() => setTankForm({ id: s.tankId, name: s.name, fuel_type: s.fuel, capacity: cap.toFixed(3), opening_stock: D(tank?.opening_stock as string).toFixed(3), active: tank?.active !== false })}>ترمیم</Button>
-                  <Button variant="ghost" icon="alert" onClick={() => removeTank(s.tankId)}>حذف</Button>
+                  <Button icon="check" onClick={() => setDipFor(s.tankId)}>{t.dip}</Button>
+                  <Button icon="settings" onClick={() => setAdjustFor(s.tankId)}>{t.adjust}</Button>
+                  <Button icon="file" onClick={() => setTankForm({ id: s.tankId, name: s.name, fuel_type: s.fuel, capacity: cap.toFixed(3), opening_stock: D(tank?.opening_stock as string).toFixed(3), active: tank?.active !== false })}>{t.edit}</Button>
+                  <Button variant="ghost" icon="alert" onClick={() => removeTank(s.tankId)}>{t.delete}</Button>
                 </div>
               </Card>
             );
@@ -113,17 +113,17 @@ export default function Stock() {
 
       {tab === "ledger" && (
         <Card>
-          <div className="card-head"><div><h2>اسٹاک لیجر</h2><p>تمام اندراجات (append-only)</p></div></div>
-          {ledger.length === 0 ? <EmptyState icon="sync" title="کوئی اندراج نہیں" /> : (
+          <div className="card-head"><div><h2>{t.stockLedgerTitle}</h2><p>{t.allEntriesAppendOnly}</p></div></div>
+          {ledger.length === 0 ? <EmptyState icon="sync" title={t.noEntry} /> : (
             <div className="table-scroll"><table>
-              <thead><tr><th>وقت</th><th>ٹینک</th><th>ایندھن</th><th>حرکت</th><th>مقدار</th><th>حوالہ</th></tr></thead>
+              <thead><tr><th>{t.time}</th><th>{t.tank}</th><th>{t.fuel}</th><th>{t.movement}</th><th>{t.qtyLabel}</th><th>{t.ref}</th></tr></thead>
               <tbody>
                 {ledger.slice(0, 200).map((l) => (
                   <tr key={String(l.id)}>
                     <td>{fmtDateTime(String(l.entry_time))}</td>
                     <td>{nameOf(String(l.tank_id))}</td>
-                    <td>{String(l.fuel_type) === "petrol" ? "پٹرول" : "ڈیزل"}</td>
-                    <td><Badge tone={String(l.movement) === "in" ? "success" : String(l.movement) === "adjust" ? "warning" : "info"}>{String(l.movement) === "in" ? "اندر" : String(l.movement) === "adjust" ? "ایڈجسٹ" : "باہر"}</Badge></td>
+                    <td>{String(l.fuel_type) === "petrol" ? t.petrol : t.diesel}</td>
+                    <td><Badge tone={String(l.movement) === "in" ? "success" : String(l.movement) === "adjust" ? "warning" : "info"}>{String(l.movement) === "in" ? t.inMovement : String(l.movement) === "adjust" ? t.adjustMovement : t.outMovement}</Badge></td>
                     <td className="num">{qty(l.quantity as string)}</td>
                     <td>{String(l.ref_type)}</td>
                   </tr>
@@ -136,10 +136,10 @@ export default function Stock() {
 
       {tab === "dips" && (
         <Card>
-          <div className="card-head"><div><h2>ٹینک ڈپس</h2><p>ناپ اور بُک کا موازنہ</p></div></div>
-          {d.tankDips.length === 0 ? <EmptyState icon="tank" title="کوئی ڈپ نہیں" /> : (
+          <div className="card-head"><div><h2>{t.tankDipsTitle}</h2><p>{t.measurementVsBook}</p></div></div>
+          {d.tankDips.length === 0 ? <EmptyState icon="tank" title={t.noDip} /> : (
             <div className="table-scroll"><table>
-              <thead><tr><th>وقت</th><th>ٹینک</th><th>ناپی گئی</th><th>بُک</th><th>فرق</th><th>نوٹ</th></tr></thead>
+              <thead><tr><th>{t.time}</th><th>{t.tank}</th><th>{t.measured}</th><th>{t.book}</th><th>{t.variance}</th><th>{t.note}</th></tr></thead>
               <tbody>
                 {byDateDesc(d.tankDips, "measured_at").map((r) => {
                   const v = D(r.variance as string);
@@ -162,10 +162,10 @@ export default function Stock() {
 
       {tab === "adjust" && (
         <Card>
-          <div className="card-head"><div><h2>اسٹاک ایڈجسٹمنٹ</h2><p>منظور شدہ کتابی اصلاحات</p></div></div>
-          {d.stockLedger.filter((l) => String(l.ref_type) === "adjustment").length === 0 ? <EmptyState icon="settings" title="کوئی ایڈجسٹمنٹ نہیں" /> : (
+          <div className="card-head"><div><h2>{t.stockAdjustmentTitle}</h2><p>{t.approvedBookCorrections}</p></div></div>
+          {d.stockLedger.filter((l) => String(l.ref_type) === "adjustment").length === 0 ? <EmptyState icon="settings" title={t.noAdjustment} /> : (
             <div className="table-scroll"><table>
-              <thead><tr><th>وقت</th><th>ٹینک</th><th>مقدار</th><th>وجہ</th></tr></thead>
+              <thead><tr><th>{t.time}</th><th>{t.tank}</th><th>{t.qtyLabel}</th><th>{t.reason}</th></tr></thead>
               <tbody>
                 {byDateDesc(d.stockLedger.filter((l) => String(l.ref_type) === "adjustment"), "entry_time").map((l) => (
                   <tr key={String(l.id)}>
@@ -182,23 +182,23 @@ export default function Stock() {
       )}
 
       {tankForm && (
-        <Modal title={tankForm.id ? "ٹینک میں ترمیم" : "نیا ٹینک"} onClose={() => setTankForm(null)}
+        <Modal title={tankForm.id ? t.editTank : t.newTank} onClose={() => setTankForm(null)}
           footer={<>
-            <Button onClick={() => setTankForm(null)}>منسوخ</Button>
-            <Button variant="primary" disabled={busy || !tankForm.name || !tankForm.capacity} onClick={() => saveTank(tankForm)}>محفوظ کریں</Button>
+            <Button onClick={() => setTankForm(null)}>{t.cancel}</Button>
+            <Button variant="primary" disabled={busy || !tankForm.name || !tankForm.capacity} onClick={() => saveTank(tankForm)}>{t.save}</Button>
           </>}>
           <div className="form-grid">
-            <Field label="نام"><input value={tankForm.name} onChange={(e) => setTankForm({ ...tankForm, name: e.target.value })} /></Field>
-            <Field label="ایندھن">
+            <Field label={t.name}><input value={tankForm.name} onChange={(e) => setTankForm({ ...tankForm, name: e.target.value })} /></Field>
+            <Field label={t.fuel}>
               <select value={tankForm.fuel_type} onChange={(e) => setTankForm({ ...tankForm, fuel_type: e.target.value })}>
-                <option value="petrol">پٹرول</option><option value="diesel">ڈیزل</option>
+                <option value="petrol">{t.petrol}</option><option value="diesel">{t.diesel}</option>
               </select>
             </Field>
-            <Field label="گنجائش (لیٹر)"><input className="latin" inputMode="decimal" value={tankForm.capacity} onChange={(e) => setTankForm({ ...tankForm, capacity: e.target.value })} /></Field>
-            <Field label="ابتدائی اسٹاک"><input className="latin" inputMode="decimal" value={tankForm.opening_stock} onChange={(e) => setTankForm({ ...tankForm, opening_stock: e.target.value })} /></Field>
-            <Field label="فعال">
+            <Field label={t.capacityLiters}><input className="latin" inputMode="decimal" value={tankForm.capacity} onChange={(e) => setTankForm({ ...tankForm, capacity: e.target.value })} /></Field>
+            <Field label={t.openingStock}><input className="latin" inputMode="decimal" value={tankForm.opening_stock} onChange={(e) => setTankForm({ ...tankForm, opening_stock: e.target.value })} /></Field>
+            <Field label={t.active}>
               <select value={String(tankForm.active)} onChange={(e) => setTankForm({ ...tankForm, active: e.target.value === "true" })}>
-                <option value="true">ہاں</option><option value="false">نہیں</option>
+                <option value="true">{t.yes}</option><option value="false">{t.no}</option>
               </select>
             </Field>
           </div>
@@ -219,27 +219,28 @@ function latestDip(dips: Record<string, unknown>[], tankId: string): string {
 
 function DipModal({ tankId, book, onClose }: { tankId: string; book: string; onClose: () => void }) {
   const { user } = useAuth();
+  const { t } = useLang();
   const toast = useToast();
   const [measured, setMeasured] = useState(book);
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const variance = D(measured).minus(D(book));
   return (
-    <Modal title="ٹینک ڈپ درج کریں" onClose={onClose} footer={<>
-      <Button onClick={onClose}>منسوخ</Button>
+    <Modal title={t.recordTankDip} onClose={onClose} footer={<>
+      <Button onClick={onClose}>{t.cancel}</Button>
       <Button variant="primary" disabled={busy} onClick={async () => {
         setBusy(true);
-        try { await postTankDip({ tank_id: tankId, measured_qty: measured, book_qty: book, notes, actor: user?.uid ?? "web" }); toast("ڈپ محفوظ"); onClose(); }
+        try { await postTankDip({ tank_id: tankId, measured_qty: measured, book_qty: book, notes, actor: user?.uid ?? "web" }); toast(t.dipSaved); onClose(); }
         catch (e) { toast((e as Error).message, "danger"); } finally { setBusy(false); }
-      }}>محفوظ کریں</Button>
+      }}>{t.save}</Button>
     </>}>
-      <div className="review-block"><span>بُک اسٹاک</span><strong>{qty(book)}</strong></div>
+      <div className="review-block"><span>{t.bookStock}</span><strong>{qty(book)}</strong></div>
       <div className="form-grid">
-        <Field label="ناپی گئی مقدار (لیٹر)"><input className="latin" inputMode="decimal" value={measured} onChange={(e) => setMeasured(e.target.value)} /></Field>
-        <Field label="فرق">
+        <Field label={t.measuredQtyLiters}><input className="latin" inputMode="decimal" value={measured} onChange={(e) => setMeasured(e.target.value)} /></Field>
+        <Field label={t.variance}>
           <input className="latin" readOnly value={variance.toFixed(3)} style={{ color: variance.lt(0) ? "var(--red-700)" : "var(--green-700)" }} />
         </Field>
-        <Field label="نوٹ" full><input value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>
+        <Field label={t.note} full><input value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>
       </div>
     </Modal>
   );
@@ -247,26 +248,28 @@ function DipModal({ tankId, book, onClose }: { tankId: string; book: string; onC
 
 function AdjustModal({ tankId, fuel, onClose }: { tankId: string; fuel: string; onClose: () => void }) {
   const { user } = useAuth();
+  const { t } = useLang();
   const toast = useToast();
   const [qtyVal, setQtyVal] = useState("");
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   return (
-    <Modal title="اسٹاک ایڈجسٹمنٹ" onClose={onClose} footer={<>
-      <Button onClick={onClose}>منسوخ</Button>
+    <Modal title={t.stockAdjustmentModal} onClose={onClose} footer={<>
+      <Button onClick={onClose}>{t.cancel}</Button>
       <Button variant="danger" disabled={busy || !reason} onClick={async () => {
         setBusy(true);
         try {
           await postStockAdjustment({ tank_id: tankId, fuel_type: fuel, adjustment_qty: qtyVal, reason, actor: user?.uid ?? "web" });
-          await createRecord("audit_logs", { action: "stock_adjust", entity: "stock_adjustments", entity_id: tankId, after_json: JSON.stringify({ adjustment_qty: qtyVal, reason }), business_date: new Date().toISOString().slice(0, 10), user_id: user?.uid ?? "web", device_id: "web-dashboard", event_time: new Date().toISOString() });
-          toast("ایڈجسٹمنٹ درج"); onClose();
+          await createRecord("audit_logs", { action: "stock_adjust", entity: "stock_adjustments", entity_id: tankId, after_json: JSON.stringify({ adjustment_qty: qtyVal, reason }), business_date: new Date().toISOString().slice(0, 10), user_id: user?.uid ?? "web", event_time: new Date().toISOString() });
+          toast(t.dipSaved); onClose();
         } catch (e) { toast((e as Error).message, "danger"); } finally { setBusy(false); }
       }}>تصدیق و درج</Button>
     </>}>
-      <div className="notice warning"><Icon name="alert" /><div><strong>احتیاط</strong><span>ایڈجسٹمنٹ لیجر میں الگ اندراج کے طور پر محفوظ ہوتی ہے (اصل ریکارڈ تبدیل نہیں ہوتا)۔</span></div></div>
+      <div className="notice warning"><Icon name="alert" /><div><strong>{t.lowLevel}</strong><span>{t.needsRefill}</span></div></div>
       <div className="form-grid">
-        <Field label="مقدار (+ بڑھانے، − گھٹانے کے لیے)"><input className="latin" inputMode="decimal" value={qtyVal} onChange={(e) => setQtyVal(e.target.value)} placeholder="مثلاً -12.5" /></Field>
-        <Field label="وجہ"><input value={reason} onChange={(e) => setReason(e.target.value)} /></Field>
+        <Field label={t.measuredQtyLiters}>
+                <input className="latin" inputMode="decimal" value={qtyVal} onChange={(e) => setQtyVal(e.target.value)} placeholder={t.measuredQtyLiters} /></Field>
+        <Field label={t.reason}><input value={reason} onChange={(e) => setReason(e.target.value)} /></Field>
       </div>
     </Modal>
   );

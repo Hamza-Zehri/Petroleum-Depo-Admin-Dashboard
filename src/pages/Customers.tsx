@@ -3,7 +3,7 @@ import { useDepot } from "../lib/store";
 import { Card, Button, PageHeader, Modal, Field, StatusBadge, EmptyState, useToast } from "../components/ui";
 import { Icon } from "../components/Icons";
 import { D, money, fmtDate } from "../lib/format";
-import { createRecord, patchRecord, deleteRecord, byDateDesc } from "../lib/repo";
+import { createRecord, createRecordsBatch, patchRecord, deleteRecord, byDateDesc } from "../lib/repo";
 import { postCustomerPayment } from "../lib/posting";
 import { useAuth } from "../lib/auth";
 import { useLang } from "../lib/lang";
@@ -55,8 +55,8 @@ export default function Customers() {
           { header: "Opening", value: (c) => String(c.opening_balance) }, { header: "Due", value: (c) => balanceOf(String(c.id)).toFixed(2) },
         ], rows)}>CSV</Button>
         <Button variant="secondary" icon="download" onClick={() => downloadTemplate("customer-template.csv", ["customer_name", "phone", "business_name", "address", "opening_balance", "credit_limit", "notes"], ["Sample Customer", "03001234567", "Sample Traders", "Sample Address", "0", "50000", "Sample note"])}>Template</Button>
-        <Button variant="secondary" icon="upload" onClick={() => setImportOpen(true)}>Import CSV</Button>
-        <Button variant="primary" icon="plus" onClick={() => setForm({ ...blank })}>نیا گاہک</Button>
+        <Button variant="secondary" icon="upload" onClick={() => setImportOpen(true)}>{t.importSheet}</Button>
+        <Button variant="primary" icon="plus" onClick={() => setForm({ ...blank })}>{t.addCustomer}</Button>
       </PageHeader>
 
       <Card className="filter-card">
@@ -130,12 +130,24 @@ export default function Customers() {
       {importOpen && (
         <CsvImportModal
           config={{
-            title: "Import Customers from CSV",
+            title: `${t.importTitle} — ${t.customersTitle}`,
             templateFilename: "customer-template.csv",
             templateHeaders: ["customer_name", "phone", "business_name", "address", "opening_balance", "credit_limit", "notes"],
             templateSample: ["Sample Customer", "03001234567", "Sample Traders", "Sample Address", "0", "50000", "Sample note"],
             expectedHeaders: ["customer_name", "phone", "business_name", "address", "opening_balance", "credit_limit", "notes"],
-            headerLabels: { customer_name: "Name", phone: "Phone", business_name: "Business", address: "Address", opening_balance: "Opening", credit_limit: "Credit limit", notes: "Notes" },
+            requiredHeaders: ["customer_name", "opening_balance"],
+            headerAliases: {
+              name: "customer_name", customer: "customer_name", "customer name": "customer_name",
+              mobile: "phone", contact: "phone", phone_no: "phone", phone_number: "phone",
+              business: "business_name", company: "business_name",
+              opening: "opening_balance", balance: "opening_balance",
+              limit: "credit_limit", note: "notes",
+            },
+            headerLabels: {
+              customer_name: t.name, phone: t.phone, business_name: t.business,
+              address: t.address, opening_balance: t.openingBalance,
+              credit_limit: t.creditLimit, notes: t.note,
+            },
             validateRow: (v) => {
               const errs: string[] = [];
               if (!v.customer_name.trim()) errs.push("Missing customer name");
@@ -165,16 +177,16 @@ export default function Customers() {
               return ph ? `phone:${ph}` : `name:${String(r.name ?? "").toLowerCase().trim()}`;
             },
             onImport: async (rows: any[]) => {
-              let created = 0;
-              for (const r of rows) {
-                await createRecord("customers", {
+              const created = await createRecordsBatch(
+                "customers",
+                rows.map((r) => ({
                   name: r.name, company: r.company, contact: r.contact, address: r.address,
                   opening_balance: D(r.opening_balance).toFixed(2),
                   credit_limit: r.credit_limit ? D(r.credit_limit).toFixed(2) : null,
-                  notes: r.notes, active: true, created_by: user?.uid ?? "web",
-                }, { createdBy: user?.uid });
-                created++;
-              }
+                  notes: r.notes, active: true, created_by: user?.uid ?? "ADMIN",
+                })),
+                { createdBy: user?.uid },
+              );
               return { created, skipped: 0 };
             },
           }}

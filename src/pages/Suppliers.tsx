@@ -3,7 +3,7 @@ import { useDepot } from "../lib/store";
 import { Card, Button, PageHeader, Modal, Field, StatusBadge, EmptyState, useToast } from "../components/ui";
 import { Icon } from "../components/Icons";
 import { D, money, fmtDate } from "../lib/format";
-import { createRecord, patchRecord, deleteRecord, byDateDesc } from "../lib/repo";
+import { createRecord, createRecordsBatch, patchRecord, deleteRecord, byDateDesc } from "../lib/repo";
 import { postSupplierPayment } from "../lib/posting";
 import { useAuth } from "../lib/auth";
 import { useLang } from "../lib/lang";
@@ -55,8 +55,8 @@ export default function Suppliers() {
           { header: "Opening", value: (s) => String(s.opening_balance) }, { header: "Payable", value: (s) => dueOf(String(s.id)).toFixed(2) },
         ], rows)}>CSV</Button>
         <Button variant="secondary" icon="download" onClick={() => downloadTemplate("supplier-template.csv", ["supplier_name", "phone", "business_name", "address", "opening_balance", "notes"], ["Sample Supplier", "03001234567", "Sample Petroleum", "Sample Address", "0", "Sample note"])}>Template</Button>
-        <Button variant="secondary" icon="upload" onClick={() => setImportOpen(true)}>Import CSV</Button>
-        <Button variant="primary" icon="plus" onClick={() => setForm({ ...blank })}>نیا سپلائر</Button>
+        <Button variant="secondary" icon="upload" onClick={() => setImportOpen(true)}>{t.importSheet}</Button>
+        <Button variant="primary" icon="plus" onClick={() => setForm({ ...blank })}>{t.addSupplier}</Button>
       </PageHeader>
 
       <Card className="filter-card">
@@ -123,12 +123,23 @@ export default function Suppliers() {
       {importOpen && (
         <CsvImportModal
           config={{
-            title: "Import Suppliers from CSV",
+            title: `${t.importTitle} — ${t.suppliersTitle}`,
             templateFilename: "supplier-template.csv",
             templateHeaders: ["supplier_name", "phone", "business_name", "address", "opening_balance", "notes"],
             templateSample: ["Sample Supplier", "03001234567", "Sample Petroleum", "Sample Address", "0", "Sample note"],
             expectedHeaders: ["supplier_name", "phone", "business_name", "address", "opening_balance", "notes"],
-            headerLabels: { supplier_name: "Name", phone: "Phone", business_name: "Business", address: "Address", opening_balance: "Opening payable", notes: "Notes" },
+            requiredHeaders: ["supplier_name", "opening_balance"],
+            headerAliases: {
+              name: "supplier_name", supplier: "supplier_name", "supplier name": "supplier_name",
+              mobile: "phone", contact: "phone", phone_no: "phone", phone_number: "phone",
+              business: "business_name", company: "business_name",
+              opening: "opening_balance", balance: "opening_balance", payable: "opening_balance",
+              note: "notes",
+            },
+            headerLabels: {
+              supplier_name: t.name, phone: t.phone, business_name: t.business,
+              address: t.address, opening_balance: t.openingBalance, notes: t.note,
+            },
             validateRow: (v) => {
               const errs: string[] = [];
               if (!v.supplier_name.trim()) errs.push("Missing supplier name");
@@ -156,15 +167,15 @@ export default function Suppliers() {
               return ph ? `phone:${ph}` : `name:${String(r.name ?? "").toLowerCase().trim()}`;
             },
             onImport: async (rows: any[]) => {
-              let created = 0;
-              for (const r of rows) {
-                await createRecord("suppliers", {
+              const created = await createRecordsBatch(
+                "suppliers",
+                rows.map((r) => ({
                   name: r.name, company: r.company, contact: r.contact, address: r.address,
                   opening_balance: D(r.opening_balance).toFixed(2),
-                  notes: r.notes, active: true, created_by: user?.uid ?? "web",
-                }, { createdBy: user?.uid });
-                created++;
-              }
+                  notes: r.notes, active: true, created_by: user?.uid ?? "ADMIN",
+                })),
+                { createdBy: user?.uid },
+              );
               return { created, skipped: 0 };
             },
           }}

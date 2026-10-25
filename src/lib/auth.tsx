@@ -58,8 +58,21 @@ async function loadSession(
   };
 }
 
-function writeBatchOwner(uid: string, username: string, fullName: string) {
+const LOCK_REF = doc(db, COLLECTIONS.settings, "bootstrap_lock");
+
+async function ownerProfileWrite(
+  uid: string,
+  username: string,
+  fullName: string,
+): Promise<void> {
   const now = new Date().toISOString();
+  // The lock is created once, together with the first owner profile. If it
+  // already exists and belongs to this same account (e.g. the profile doc was
+  // deleted), only the profile is recreated — the lock must never be updated.
+  const lockSnap = await getDoc(LOCK_REF);
+  if (lockSnap.exists() && lockSnap.data()?.owner_uid !== uid) {
+    throw new Error("پہلے سے کوئی مالک موجود ہے");
+  }
   const batch = writeBatch(db);
   batch.set(doc(db, COLLECTIONS.users, uid), {
     id: uid,
@@ -71,17 +84,19 @@ function writeBatchOwner(uid: string, username: string, fullName: string) {
     updated_at: now,
     version: 1,
     sync_status: "synced",
+    device_id: "ADMIN",
+    deviceId: "ADMIN",
     _createdBy: uid,
   });
-  // The lock may only be created while it does not yet exist (security rules),
-  // so a second owner can never claim the depot.
-  batch.set(doc(db, COLLECTIONS.settings, "bootstrap_lock"), {
-    id: "bootstrap_lock",
-    value: uid,
-    owner_uid: uid,
-    created_at: now,
-  });
-  return batch;
+  if (!lockSnap.exists()) {
+    batch.set(LOCK_REF, {
+      id: "bootstrap_lock",
+      value: uid,
+      owner_uid: uid,
+      created_at: now,
+    });
+  }
+  await batch.commit();
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -97,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (missing && fb.uid === OWNER_UID) {
             // Configured owner account: provision its owner profile + lock now.
             try {
-              await writeBatchOwner(fb.uid, fb.email ?? "مالک", "ڈپو مالک").commit();
+              await ownerProfileWrite(fb.uid, fb.email ?? "مالک", "ڈپو مالک");
               setUser({ uid: fb.uid, email: fb.email, fullName: "ڈپو مالک", role: "owner" });
               setProfileMissing(false);
             } catch {
@@ -131,20 +146,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // First-run bootstrap: creates the Auth account AND its owner profile.
   const bootstrapOwner = useCallback(async (email: string, password: string, fullName: string) => {
+    // Refuse before creating an orphan Auth account if a depot owner already exists.
+    const lockSnap = await getDoc(LOCK_REF);
+    if (lockSnap.exists()) throw new Error("پہلے سے کوئی مالک موجود ہے");
     const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
     const name = fullName.trim() || "مالک";
-    await writeBatchOwner(cred.user.uid, email.trim(), fullName.trim()).commit();
+    await ownerProfileWrite(cred.user.uid, email.trim(), fullName.trim());
     setUser({ uid: cred.user.uid, email: cred.user.email, fullName: name, role: "owner" });
     setProfileMissing(false);
   }, []);
 
   // Claim: turns an existing (console-created) Auth account into the owner when
-  // the depot has no owner yet. Fails harmlessly once an owner exists.
+  // the depot has no owner yet. Fails harmlessly once a different owner exists.
   const claimOwner = useCallback(async (fullName: string) => {
     const fb = auth.currentUser;
     if (!fb) throw new Error("پہلے لاگ ان کریں");
     const name = fullName.trim() || fb.email || "مالک";
-    await writeBatchOwner(fb.uid, fb.email ?? name, name).commit();
+    await ownerProfileWrite(fb.uid, fb.email ?? name, name);
     setUser({ uid: fb.uid, email: fb.email, fullName: name, role: "owner" });
     setProfileMissing(false);
   }, []);

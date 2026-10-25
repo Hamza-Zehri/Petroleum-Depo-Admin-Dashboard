@@ -39,7 +39,7 @@ export default function Cashbook() {
     if (D(f.amount).lte(0)) { toast("رقم درست نہیں", "danger"); return; }
     setBusy(true);
     try {
-      const payload = { ref_no: `MAN-${Date.now().toString().slice(-6)}`, entry_date: f.entry_date, business_date: f.entry_date.slice(0, 10), dir: f.dir, category: f.category || "manual", amount: D(f.amount).toFixed(2), method: f.method, description: f.description, related_table: null, related_id: null, created_by: user?.uid ?? "web", device_id: "web-dashboard", version: 1, sync_status: "synced" };
+      const payload = { ref_no: `MAN-${Date.now().toString().slice(-6)}`, entry_date: f.entry_date, business_date: f.entry_date.slice(0, 10), dir: f.dir, category: f.category || "manual", amount: D(f.amount).toFixed(2), method: f.method, description: f.description, related_table: null, related_id: null, created_by: user?.uid ?? "web", version: 1, sync_status: "synced" };
       if (f.id) await patchRecord("cashbook", f.id, { amount: payload.amount, method: payload.method, description: payload.description, category: payload.category });
       else await createRecord("cashbook", payload, { createdBy: user?.uid });
       toast(f.id ? "اپ ڈیٹ" : "اندراج درج"); setForm(null);

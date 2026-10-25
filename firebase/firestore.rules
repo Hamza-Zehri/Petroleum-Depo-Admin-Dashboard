@@ -75,7 +75,10 @@ service cloud.firestore {
           && request.auth.uid == uid
           && request.resource.data.role == 'owner'
           && request.resource.data.active == true
-          && !exists(/databases/$(database)/documents/settings/bootstrap_lock))
+          && (
+            !exists(/databases/$(database)/documents/settings/bootstrap_lock)
+            || get(/databases/$(database)/documents/settings/bootstrap_lock).data.owner_uid == request.auth.uid
+          ))
         || roleIn(['owner'])
       );
       allow update: if roleIn(['owner']) || (
@@ -190,6 +193,16 @@ service cloud.firestore {
       allow read: if isActive();
       allow create, update: if isActive();
       allow delete: if isDevice() || roleIn(['owner']);
+    }
+
+    // ------------------------------------------------------------ backups
+    // Admin-generated JSON snapshots shown in the Backup viewer. The client
+    // keeps each document under Firestore's 1 MiB limit; larger exports are
+    // downloaded as files instead.
+    match /backups/{id} {
+      allow read: if isActive();
+      allow create: if roleIn(['owner', 'manager', 'accountant']);
+      allow update, delete: if roleIn(['owner', 'manager']);
     }
 
     // ----------------------------------------------------------- fallback

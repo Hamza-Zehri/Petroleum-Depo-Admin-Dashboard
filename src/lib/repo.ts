@@ -9,8 +9,8 @@
 // COGS per litre uses weighted-average inventory cost (scale 4).
 import { useEffect, useMemo, useState } from "react";
 import {
-  addDoc, collection, deleteDoc, doc, getDocs, limit as qLimit, onSnapshot, orderBy, query,
-  serverTimestamp, setDoc, updateDoc, where, type QueryConstraint,
+  addDoc, collection, deleteDoc, doc, getDocs, increment, limit as qLimit, onSnapshot, orderBy, query,
+  serverTimestamp, setDoc, updateDoc, where, writeBatch, type QueryConstraint,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { COLLECTIONS, type Role } from "./types";
@@ -18,6 +18,13 @@ import { D } from "./format";
 import Decimal from "decimal.js";
 
 export type DocData = Record<string, unknown> & { id?: string };
+
+/**
+ * The device id stamped on every record written from this dashboard. The phone
+ * uses the same `device_id` field, so the admin's writes are clearly
+ * attributable and are picked up by the `updated_at > last_sync_at` pull.
+ */
+export const ADMIN_DEVICE_ID = "ADMIN";
 
 export function newId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
@@ -105,11 +112,14 @@ export async function putRecord(
       ...data,
       id,
       updated_at: now,
+      // camelCase aliases kept in sync for older clients that query `updatedAt`.
+      updatedAt: now,
       created_at: (data.created_at as string) ?? now,
-      version: (data.version as number) ?? 1,
+      version: increment(1),
       sync_status: (data.sync_status as string) ?? "synced",
-      created_by: (data.created_by as string) ?? meta.createdBy ?? "web",
-      device_id: (data.device_id as string) ?? meta.deviceId ?? "web-dashboard",
+      created_by: (data.created_by as string) ?? meta.createdBy ?? "ADMIN",
+      device_id: (data.device_id as string) ?? meta.deviceId ?? ADMIN_DEVICE_ID,
+      deviceId: (data.deviceId as string) ?? meta.deviceId ?? ADMIN_DEVICE_ID,
       _updatedAt: serverTimestamp(),
     },
     { merge: true },
@@ -128,19 +138,63 @@ export async function createRecord(
     id,
     created_at: now,
     updated_at: now,
+    updatedAt: now,
     version: 1,
     sync_status: "synced",
-    created_by: (data.created_by as string) ?? meta.createdBy ?? "web",
-    device_id: (data.device_id as string) ?? meta.deviceId ?? "web-dashboard",
+    created_by: (data.created_by as string) ?? meta.createdBy ?? "ADMIN",
+    device_id: (data.device_id as string) ?? meta.deviceId ?? ADMIN_DEVICE_ID,
+    deviceId: (data.deviceId as string) ?? meta.deviceId ?? ADMIN_DEVICE_ID,
     _updatedAt: serverTimestamp(),
   });
   return id;
 }
 
+/**
+ * Bulk-create records in Firestore batches (max 400 docs per commit). Every
+ * document gets the same sync metadata as a single create, so the Android app
+ * downloads the whole import on its next pull.
+ */
+export async function createRecordsBatch(
+  name: string,
+  rows: DocData[],
+  meta: NewRecordMeta = {},
+): Promise<number> {
+  let created = 0;
+  for (let i = 0; i < rows.length; i += 400) {
+    const now = new Date().toISOString();
+    const batch = writeBatch(db);
+    for (const data of rows.slice(i, i + 400)) {
+      const id = (data.id as string) || newId();
+      batch.set(doc(db, name, id), {
+        ...data,
+        id,
+        created_at: now,
+        updated_at: now,
+        updatedAt: now,
+        version: 1,
+        sync_status: "synced",
+        created_by: (data.created_by as string) ?? meta.createdBy ?? "ADMIN",
+        device_id: (data.device_id as string) ?? meta.deviceId ?? ADMIN_DEVICE_ID,
+        deviceId: (data.deviceId as string) ?? meta.deviceId ?? ADMIN_DEVICE_ID,
+        _updatedAt: serverTimestamp(),
+      });
+      created++;
+    }
+    await batch.commit();
+  }
+  return created;
+}
+
 export async function patchRecord(name: string, id: string, patch: DocData): Promise<void> {
+  const now = new Date().toISOString();
   await updateDoc(doc(db, name, id), {
     ...patch,
-    updated_at: new Date().toISOString(),
+    updated_at: now,
+    updatedAt: now,
+    device_id: (patch.device_id as string) ?? ADMIN_DEVICE_ID,
+    deviceId: (patch.deviceId as string) ?? ADMIN_DEVICE_ID,
+    // Bump the version so the phone accepts this revision during its pull.
+    version: increment(1),
     _updatedAt: serverTimestamp(),
   });
 }
@@ -179,12 +233,17 @@ export async function logAudit(entry: {
   after?: unknown;
   business_date: string;
 }): Promise<void> {
+  const now = new Date().toISOString();
+  const deviceId = entry.device_id ?? ADMIN_DEVICE_ID;
   await addDoc(collection(db, COLLECTIONS.auditLogs), {
     id: newId(),
-    event_time: new Date().toISOString(),
+    event_time: now,
     business_date: entry.business_date,
     user_id: entry.user_id,
-    device_id: entry.device_id ?? "web-dashboard",
+    device_id: deviceId,
+    deviceId,
+    updated_at: now,
+    updatedAt: now,
     action: entry.action,
     entity: entry.entity,
     entity_id: entry.entity_id,

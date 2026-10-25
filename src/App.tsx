@@ -13,6 +13,7 @@ import Purchases from "./pages/Purchases";
 import Sales from "./pages/Sales";
 import Customers from "./pages/Customers";
 import Suppliers from "./pages/Suppliers";
+import Ledger from "./pages/Ledger";
 import Cashbook from "./pages/Cashbook";
 import Expenses from "./pages/Expenses";
 import Profit from "./pages/Profit";
@@ -40,6 +41,7 @@ function Routed() {
           <Route path="/sales" element={<Sales />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/suppliers" element={<Suppliers />} />
+          <Route path="/ledger" element={<Ledger />} />
           <Route path="/cashbook" element={<Cashbook />} />
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/profit" element={<Profit />} />

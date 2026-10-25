@@ -57,7 +57,7 @@ html[dir="rtl"] .page-heading h1{letter-spacing:0}
 html[dir="rtl"] .profile-wrap{position:relative}
 html[dir="rtl"] .profile-menu{position:absolute;inset-inline-end:0;top:52px;background:#fff;border:1px solid var(--slate-200);border-radius:10px;box-shadow:var(--shadow);min-width:230px;padding:6px;z-index:40}
 html[dir="rtl"] .profile-menu .pm-head{display:flex;flex-direction:column;gap:2px;padding:9px 11px;border-bottom:1px solid var(--slate-200);margin-bottom:5px}
-html[dir="rtl"] .profile-menu .pm-head strong{html[dir="rtl"] font-size:12px}.profile-menu .pm-head small{font-size:10px;color:var(--slate-500)}
+html[dir="rtl"] .profile-menu .pm-head strong{font-size:12px}.profile-menu .pm-head small{font-size:10px;color:var(--slate-500)}
 html[dir="rtl"] .profile-menu button{width:100%;border:0;background:transparent;display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:7px;font-size:12px;color:var(--slate-700);text-align:right}
 html[dir="rtl"] .profile-menu button:hover{background:var(--slate-50)}
 html[dir="rtl"] .profile-menu button.danger{color:var(--red-700)}
